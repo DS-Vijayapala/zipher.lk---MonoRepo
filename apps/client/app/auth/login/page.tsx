@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstence';
+import { createSession } from '@/lib/session';
 
 export default function LoginPage() {
 
@@ -26,13 +27,16 @@ export default function LoginPage() {
     });
 
     const loginMutation = useMutation({
+
         mutationFn: async (data: { email: string; password: string }) => {
             const res = await axiosInstance.post('/auth/signin', data);
             return res.data;
         },
-        onSuccess: () => {
+        onSuccess: async (data) => {
+            await createSession({ user: data.user });
             router.push('/dashboard');
         },
+
     });
 
     const onSubmit = (data: any) => {
