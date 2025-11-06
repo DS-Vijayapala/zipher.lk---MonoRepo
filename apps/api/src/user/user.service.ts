@@ -1,37 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import bycript from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-
   constructor(private readonly prisma: PrismaService) { }
 
-  create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto) {
+    const { name, email, password } = createUserDto;
 
-    const { password, ...user } = createUserDto
+    if (!password) {
+      throw new BadRequestException('Password is required');
+    }
 
-    if (!password) throw new Error('Password is required');
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const hashedPassword = bycript.hashSync(password, 10);
-
-    return this.prisma.user.create({
+    const newUser = await this.prisma.user.create({
       data: {
-        ...user,
+        name,
+        email,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+      },
     });
+
+    return newUser;
 
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    return this.prisma.user.findUnique({ where: { email } });
   }
-
-
 }

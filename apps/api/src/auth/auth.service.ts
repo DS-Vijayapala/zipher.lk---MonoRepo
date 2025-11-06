@@ -1,4 +1,4 @@
-import { Body, Injectable, Post } from '@nestjs/common';
+import { BadRequestException, Body, Injectable, Post } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
@@ -14,7 +14,7 @@ export class AuthService {
         const user = await this.userService.findByEmail(createUserDto.email);
 
         if (user) {
-            throw new Error('User already exists');
+            throw new BadRequestException('User already exists');
         }
 
         return this.userService.create(createUserDto);

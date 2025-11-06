@@ -1,220 +1,180 @@
 "use client";
 
-import React from "react";
-import { cn } from "../../../lib/utils";
-import { useFormState, useFormStatus } from "react-dom";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
+import clsx from "clsx";
+import { BACKEND_URL } from "@/lib/constant";
+import { useRouter } from "next/navigation";
+import { log } from "console";
 
-const SignUpPage = () => {
+type FormValues = {
+    name: string;
+    email: string;
+    password: string;
+};
 
-    const [state, setState] = React.useState("login");
+export default function SignUpPage() {
 
-    const { pending } = useFormStatus();
+    const router = useRouter();
 
-    const [data, setData] = React.useState({
-        name: "",
-        email: "",
-        password: "",
+    const [showPassword, setShowPassword] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<FormValues>();
+
+    const mutation = useMutation({
+        mutationFn: async (data: FormValues) => {
+            console.log(data);
+
+            const res = await axios.post(`${BACKEND_URL}/auth/signup`, data);
+
+            console.log(res);
+
+
+            return res.data;
+        },
+        onSuccess: () => {
+            router.push("/auth/login");
+        },
     });
 
-    const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        // TODO: Add sign-up / login logic
+    const onSubmit = (data: FormValues) => {
+        mutation.mutate(data);
     };
 
     return (
         <div
-            className={cn(
-                "min-h-screen flex items-center justify-center bg-gradient-to-br",
-                "from-green-50 to-green-100 dark:from-green-900 dark:to-green-950 p-4"
-            )}
-        >
-            <form
-                onSubmit={handleSubmit}
-                className={cn(
-                    "w-full sm:w-[360px] text-center border rounded-3xl px-8 py-10",
-                    "border-green-200 dark:border-green-700",
-                    "bg-white/90 dark:bg-green-950/80 backdrop-blur-lg shadow-xl"
-                )}
-            >
-                {/* Header */}
-                <h1
-                    className={cn(
-                        "text-3xl font-semibold mb-2",
-                        "text-green-700 dark:text-green-100"
-                    )}
-                >
-                    {state === "login" ? "Welcome Back" : "Create Account"}
-                </h1>
+            className={clsx(
+                "min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-white to-purple-50 px-4 py-8"
+            )}>
 
-                <p
-                    className={cn(
-                        "text-sm mb-8",
-                        "text-pink-500 dark:text-pink-300"
-                    )}
-                >
-                    {state === "login"
-                        ? "Login to continue your journey ✨"
-                        : "Join us and start your journey 🚀"}
-                </p>
+            <div className="w-full max-w-md">
 
-                {/* Name Input */}
-                {state !== "login" && (
-                    <div
-                        className={cn(
-                            "flex items-center w-full mt-4 bg-white dark:bg-pink-900",
-                            "border border-pink-200 dark:border-pink-700",
-                            "h-12 rounded-full overflow-hidden pl-6 gap-2",
-                            "focus-within:ring-2 focus-within:ring-pink-500 transition"
-                        )}
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="text-pink-500 dark:text-pink-400"
-                            viewBox="0 0 24 24"
-                        >
-                            <path d="M20 21a8 8 0 0 0-16 0" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
+                <div className="text-center mb-8">
 
-                        <input
-                            type="text"
-                            placeholder="Full Name"
-                            className="bg-transparent text-pink-700 dark:text-pink-100 placeholder-pink-400 outline-none text-sm w-full h-full"
-                            name="name"
-                            value={data.name}
-                            onChange={onChangeHandler}
-                            required
-                        />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
+                        <User className="w-8 h-8 text-white" />
                     </div>
-                )}
 
-                {/* Email Input */}
-                <div
-                    className={cn(
-                        "flex items-center w-full mt-4 bg-white dark:bg-pink-900",
-                        "border border-pink-200 dark:border-pink-700",
-                        "h-12 rounded-full overflow-hidden pl-6 gap-2",
-                        "focus-within:ring-2 focus-within:ring-pink-500 transition"
-                    )}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-pink-500 dark:text-pink-400"
-                        viewBox="0 0 24 24"
-                    >
-                        <rect width="20" height="16" x="2" y="4" rx="2" />
-                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                    </svg>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
 
-                    <input
-                        type="email"
-                        placeholder="Email Address"
-                        className="bg-transparent text-pink-700 dark:text-pink-100 placeholder-pink-400 outline-none text-sm w-full h-full"
-                        name="email"
-                        value={data.email}
-                        onChange={onChangeHandler}
-                        required
-                    />
                 </div>
 
-                {/* Password Input */}
-                <div
-                    className={cn(
-                        "flex items-center mt-4 w-full bg-white dark:bg-pink-900",
-                        "border border-pink-200 dark:border-pink-700",
-                        "h-12 rounded-full overflow-hidden pl-6 gap-2",
-                        "focus-within:ring-2 focus-within:ring-pink-500 transition"
-                    )}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-pink-500 dark:text-pink-400"
-                        viewBox="0 0 24 24"
-                    >
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        className="bg-transparent text-pink-700 dark:text-pink-100 placeholder-pink-400 outline-none text-sm w-full h-full"
-                        name="password"
-                        value={data.password}
-                        onChange={onChangeHandler}
-                        required
-                    />
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+                        <div>
+
+                            <label className="block text-sm mb-2">Full Name</label>
+
+                            <div className="relative">
+
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    {...register("name", { required: "Full name is required" })}
+                                    type="text"
+                                    className="w-full pl-11 pr-4 py-3 border rounded-lg"
+                                    placeholder="John Doe"
+                                />
+                            </div>
+
+                            {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
+
+                        </div>
+
+                        <div>
+
+                            <label className="block text-sm mb-2">Email</label>
+
+                            <div className="relative">
+
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    {...register("email", { required: "Email is required" })}
+                                    type="email"
+                                    className="w-full pl-11 pr-4 py-3 border rounded-lg"
+                                    placeholder="you@example.com"
+                                />
+                            </div>
+
+                            {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
+
+                        </div>
+
+                        <div>
+
+                            <label className="block text-sm mb-2">Password</label>
+
+                            <div className="relative">
+
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    {...register("password", { required: "Password is required" })}
+                                    type={showPassword ? "text" : "password"}
+                                    className="w-full pl-11 pr-12 py-3 border rounded-lg"
+                                    placeholder="••••••••"
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                                >
+                                    {showPassword ? <EyeOff /> : <Eye />}
+                                </button>
+
+                            </div>
+
+                            {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>}
+
+                            {/* Backend Error Display */}
+
+                            {mutation.isError && (
+
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm space-y-1 mt-5">
+                                    <p>{(mutation.error as any)?.response?.data?.message || "Signup failed"}</p>
+                                </div>
+
+                            )}
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={mutation.isPending}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {mutation.isPending ? "Creating Account..." : "Sign Up"}
+
+                            <ArrowRight className="w-5 h-5" />
+
+                        </button>
+
+                    </form>
+
                 </div>
 
-                {/* Forgot Password */}
-                {state === "login" && (
-                    <div className="mt-4 text-right">
-                        <a
-                            className="text-sm text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300 transition"
-                            href="#"
-                        >
-                            Forgot password?
-                        </a>
-                    </div>
-                )}
+                <p className="text-center text-gray-600 mt-6">
 
-                {/* Submit Button */}
-                <button
-                    type="submit"
-                    className={cn(
-                        "mt-6 w-full h-11 rounded-full text-white font-semibold transition-all active:scale-[0.98]",
-                        "bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700",
-                        "shadow-lg shadow-pink-200 dark:shadow-pink-900/40"
-                    )}
-                >
-                    {state === "login" ? "Login" : "Create Account"}
-                </button>
+                    Already have an account?{" "}
+                    <Link href="/auth/login" className="text-blue-600 font-semibold hover:text-blue-700">
+                        Log In
+                    </Link>
 
-                {/* Switch Mode */}
-                <p className="text-pink-600 dark:text-pink-300 text-sm mt-6 mb-2">
-                    {state === "login"
-                        ? "Don't have an account? "
-                        : "Already have an account? "}
-                    <button
-                        type="button"
-                        className="text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300 font-medium transition"
-                        onClick={() =>
-                            setState((prev) =>
-                                prev === "login" ? "register" : "login"
-                            )
-                        }
-                    >
-                        {state === "login" ? "Register" : "Login"}
-                    </button>
                 </p>
-            </form>
+
+            </div>
+
         </div>
-    );
-};
 
-export default SignUpPage;
+    );
+
+}
