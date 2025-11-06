@@ -8,6 +8,7 @@ export type SessionPayload = {
         id: string;
         name: string;
     };
+    accessToken: string;
 };
 
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET_KEY);
@@ -27,14 +28,12 @@ export async function createSession(payload: SessionPayload) {
         .sign(secret);
 
     (await cookies()).set(SESSION_NAME, token, {
-
         httpOnly: true,
         secure: true,
         sameSite: "lax",
         path: "/",
-        maxAge: 60 * 60 * 24 * 7,   // 7 days
+        maxAge: 60 * 60 * 24 * 7,
     });
-
 }
 export async function getSession(): Promise<SessionPayload | null> {
 

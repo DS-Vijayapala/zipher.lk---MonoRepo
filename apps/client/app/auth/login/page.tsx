@@ -29,25 +29,33 @@ export default function LoginPage() {
     });
 
     const loginMutation = useMutation({
-
         mutationFn: async (data: { email: string; password: string }) => {
             const res = await axiosInstance.post('/auth/signin', data);
             return res.data;
         },
-        onSuccess: async (data) => {
-            router.push("/dashboard");
+        onError: (error) => {
+            console.error('Login failed:', error);
         },
 
     });
 
     const onSubmit = (data: any) => {
-        loginMutation.mutate(data);
-        createSession({
-            user: {
-                id: data.email,
-                name: data.email.split('@')[0],
-            },
+        loginMutation.mutate(data, {
+            onSuccess: async (response) => {
+
+                await createSession({
+                    user: {
+                        id: response.id,
+                        name: response.name,
+                    },
+                    accessToken: response.accessToken,
+                });
+
+                router.push("/dashboard");
+            }
+
         });
+
     };
 
     return (
