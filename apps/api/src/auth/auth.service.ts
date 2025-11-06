@@ -3,11 +3,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
+import { AuthJwtPayload } from './types/auth-jwtpayload';
+import { JwtService } from '@nestjs/jwt';
+import id from 'zod/v4/locales/id.js';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly userService: UserService,
+        private readonly jwtService: JwtService,
 
     ) { }
 
@@ -45,4 +49,28 @@ export class AuthService {
 
     }
 
+    async login(userId: number, name: string) {
+
+        const { accessToken } = await this.generateToken(userId);
+
+        return {
+            id: userId,
+            name,
+            accessToken,
+        }
+
+    }
+
+    async generateToken(userId: number) {
+
+        const payload: AuthJwtPayload = { sub: userId };
+
+        const [accessToken] = await Promise.all([this.jwtService.signAsync(payload)])
+
+        return { accessToken };
+
+    }
+
+
 }
+
