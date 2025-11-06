@@ -1,71 +1,68 @@
 "use server";
 
-import { jwtVerify, SignJWT } from 'jose';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
 
-export type Session = {
-
+export type SessionPayload = {
     user: {
         id: string;
         name: string;
-    }
-    // accessToken: string;
-    // refreshToken: string;
+    };
 };
 
-const secretKey = process.env.SESSION_SECRET_KEY!;
+const secret = new TextEncoder().encode(process.env.SESSION_SECRET_KEY);
 
-export async function createSession(payload: Session) {
+const SESSION_NAME = "session-token";
 
-    const expireAt = new Date();
-    expireAt.setDate(expireAt.getDate() + 7); // 7 days
+const EXPIRES_IN = "7d"; // or "1h" if shorter auth needed
 
-    const session = await new SignJWT(payload)
-        .setProtectedHeader({ alg: 'HS256' })
+// Create Session Cookie
+
+export async function createSession(payload: SessionPayload) {
+
+    const token = await new SignJWT(payload)
+        .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
-        .setExpirationTime(expireAt)
-        .sign(new TextEncoder()
-            .encode(secretKey));
+        .setExpirationTime(EXPIRES_IN)
+        .sign(secret);
 
-    const cookieStore = await cookies();
+    (await cookies()).set(SESSION_NAME, token, {
 
-    cookieStore.set("session", session, {
         httpOnly: true,
         secure: true,
-        expires: expireAt,
         sameSite: "lax",
-        path: "/"
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,   // 7 days
     });
 
 }
+export async function getSession(): Promise<SessionPayload | null> {
 
-export async function getSession() {
+    const cookie = (await cookies()).get(SESSION_NAME)?.value;
 
-    const cookieStore = await cookies();
-
-    const token = cookieStore.get("session")?.value;
-
-    if (!token) return null;
+    if (!cookie) return null;
 
     try {
 
-        const encodedKey = new TextEncoder().encode(secretKey);
+        const { payload } = await jwtVerify(cookie, secret);
 
-        const { payload } = await jwtVerify(token, encodedKey, {
-            algorithms: ['HS256'],
-        });
+        return payload as SessionPayload;
 
-        return payload as Session;
-
-    } catch (error) {
-
-        console.error("Invalid or expired session:", error);
-
-        redirect('/auth/login');
+    } catch {
 
         return null;
 
     }
+}
+
+export async function deleteSession() {
+
+    (await cookies()).set(SESSION_NAME, "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+    });
 
 }

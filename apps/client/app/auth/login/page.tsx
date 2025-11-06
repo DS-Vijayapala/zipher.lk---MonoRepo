@@ -7,7 +7,9 @@ import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstence';
+import { create } from 'domain';
 import { createSession } from '@/lib/session';
+
 
 export default function LoginPage() {
 
@@ -33,14 +35,19 @@ export default function LoginPage() {
             return res.data;
         },
         onSuccess: async (data) => {
-            await createSession({ user: data.user });
-            router.push('/dashboard');
+            router.push("/dashboard");
         },
 
     });
 
     const onSubmit = (data: any) => {
         loginMutation.mutate(data);
+        createSession({
+            user: {
+                id: data.email,
+                name: data.email.split('@')[0],
+            },
+        });
     };
 
     return (
