@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { get } from "http";
+import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
+import LogoutButton from "./LogoutButton";
 
 const AppBar = () => {
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const [session, setSession] = useState<any>(null);
+
+    const router = useRouter();
 
     useEffect(() => {
 
@@ -68,12 +71,7 @@ const AppBar = () => {
 
                         <span className="mr-4 font-bold">Hello, {session.user.name}</span>
 
-                        <Link
-                            href="/auth/logout"
-                            className={`bg-white hover:bg-gray-50 border border-gray-300 px-9 py-2
-                            rounded-full active:scale-95 transition-all hidden md:inline`}>
-                            Log out
-                        </Link>
+                        <LogoutButton />
 
                     </div>
                 )}
@@ -108,11 +106,7 @@ const AppBar = () => {
                                 Get started
                             </Link>
                         ) : (
-                            <Link
-                                href="/auth/logout"
-                                className={`mt-4 inline-block bg-white hover:bg-gray-50 border border-gray-300 px-9 py-2 rounded-full active:scale-95 transition-all`}>
-                                Log out
-                            </Link>
+                            <LogoutButton />
                         )}
                     </div>
                 )}
