@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import id from 'zod/v4/locales/id.js';
 import refreshConfig from './config/refresh.config';
 import type { ConfigType } from "@nestjs/config";
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -92,6 +93,34 @@ export class AuthService {
         };
 
         return currentUser;
+
+    }
+
+    async validateRefreshToken(userId: string) {
+
+        const user = await this.userService.findOne(userId);
+
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        const currentUser = {
+            id: user.id,
+        };
+
+        return currentUser;
+    }
+
+    async refreshToken(userId: string, name: string) {
+
+        const { accessToken, refreshToken } = await this.generateToken(userId);
+
+        return {
+            id: userId,
+            name: name,
+            accessToken,
+            refreshToken,
+        }
 
     }
 
