@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
@@ -51,5 +51,12 @@ export class AuthController {
       &accessToken=${response.accessToken}
       &refreshToken=${response.refreshToken}`);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('signout')
+  async signOut(@Req() req) {
+    return this.authService.signOut(req.user.id);
+  }
+
 
 }

@@ -57,6 +57,10 @@ export class AuthService {
 
         const { accessToken, refreshToken } = await this.generateToken(userId);
 
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+        await this.userService.updateHashRefreshToken(userId, hashedRefreshToken);
+
         return {
             id: userId,
             name,
@@ -96,12 +100,18 @@ export class AuthService {
 
     }
 
-    async validateRefreshToken(userId: string) {
+    async validateRefreshToken(userId: string, refreshToken: string) {
 
         const user = await this.userService.findOne(userId);
 
         if (!user) {
             throw new UnauthorizedException('User not found');
+        }
+
+        const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.hashRefreshToken!);
+
+        if (!isRefreshTokenValid) {
+            throw new UnauthorizedException('Invalid refresh token');
         }
 
         const currentUser = {
@@ -114,6 +124,10 @@ export class AuthService {
     async refreshToken(userId: string, name: string) {
 
         const { accessToken, refreshToken } = await this.generateToken(userId);
+
+        const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+        await this.userService.updateHashRefreshToken(userId, hashedRefreshToken);
 
         return {
             id: userId,
@@ -132,6 +146,10 @@ export class AuthService {
 
         return await this.userService.create(googleUser);
 
+    }
+
+    async signOut(userId: string) {
+        return await this.userService.updateHashRefreshToken(userId, null);
     }
 
 }
