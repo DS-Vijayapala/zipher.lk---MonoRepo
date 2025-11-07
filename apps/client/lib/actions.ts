@@ -9,22 +9,15 @@ export const getProfile = async () => {
 
         const session = await getSession();
 
-        if (!session) {
-            return {
-                ok: false,
-                error: "Not authenticated",
-            };
+        if (!session?.accessToken) {
+            return { ok: false, error: "Not authenticated" };
         }
 
-        const response = await axiosInstance.get("/auth/protected");
+        const response = await axiosInstance.get(`/auth/protected`);
 
-        return {
-            ok: true,
-            data: response.data,
-        };
+        return { ok: true, data: response.data };
 
-    }
-    catch (err: any) {
+    } catch (err: any) {
 
         return {
             ok: false,

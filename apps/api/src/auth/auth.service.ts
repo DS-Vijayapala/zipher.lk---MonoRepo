@@ -54,7 +54,7 @@ export class AuthService {
 
     }
 
-    async login(userId: string, name: string) {
+    async login(userId: string, name: string, role: string) {
 
         const { accessToken, refreshToken } = await this.generateToken(userId);
 
@@ -65,6 +65,7 @@ export class AuthService {
         return {
             id: userId,
             name,
+            role,
             accessToken,
             refreshToken,
         }

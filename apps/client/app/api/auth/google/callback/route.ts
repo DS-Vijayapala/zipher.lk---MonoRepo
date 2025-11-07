@@ -1,4 +1,4 @@
-import { createSession } from "@/lib/session";
+import { createSession, Role } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
@@ -15,7 +15,9 @@ export async function GET(req: NextRequest) {
 
     const name = searchParams.get("name")
 
-    if (!accessToken || !refreshToken || !userId || !name) {
+    const role = searchParams.get("role")
+
+    if (!accessToken || !refreshToken || !userId || !name || !role) {
 
         throw new Error("Google Auth Failed");
     }
@@ -23,7 +25,8 @@ export async function GET(req: NextRequest) {
     await createSession({
         user: {
             id: userId,
-            name: name
+            name: name,
+            role: role as Role,
         },
         accessToken,
         refreshToken

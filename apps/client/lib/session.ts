@@ -3,10 +3,16 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
+export enum Role {
+    USER = "USER",
+    ADMIN = "ADMIN",
+}
+
 export type SessionPayload = {
     user: {
         id: string;
         name: string;
+        role: Role;
     };
     accessToken: string;
     refreshToken: string;
@@ -81,7 +87,8 @@ export async function updateSessionTokens(
     const newPayload: SessionPayload = {
         user: {
             id: (payload as SessionPayload).user.id,
-            name: (payload as SessionPayload).user.name
+            name: (payload as SessionPayload).user.name,
+            role: (payload as SessionPayload).user.role,
         },
         accessToken,
         refreshToken

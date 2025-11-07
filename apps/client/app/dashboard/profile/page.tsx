@@ -1,15 +1,18 @@
 import { getProfile } from '@/lib/actions'
-import { getSession } from '@/lib/session';
-import React from 'react'
+import { getSession, Role } from '@/lib/session';
+
 
 const ProfilePage = async () => {
 
-    const profile = await getProfile()
+    const profile = await getProfile();
 
     const session = await getSession();
 
     console.log(`Profile:${profile} , session : AccessToken:${session?.accessToken} , RefreshToken:${session?.refreshToken}`);
 
+    if (session?.user?.role !== Role.ADMIN) {
+        return <div>You do not have access to view this page.</div>;
+    }
 
     return (
         <div>

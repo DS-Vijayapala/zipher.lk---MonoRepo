@@ -41,8 +41,8 @@ axiosInstance.interceptors.request.use(
         }
 
         if (token) {
-
-            config.headers.Authorization = `Bearer ${token}`;
+            const cleanToken = String(token).replace(/"/g, "").trim();
+            config.headers.Authorization = `Bearer ${cleanToken}`;
         }
 
         return config;

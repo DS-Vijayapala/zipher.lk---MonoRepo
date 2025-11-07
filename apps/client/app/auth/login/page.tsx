@@ -47,6 +47,7 @@ export default function LoginPage() {
                     user: {
                         id: response.id,
                         name: response.name,
+                        role: response.role,
                     },
                     accessToken: response.accessToken,
                     refreshToken: response.refreshToken,
