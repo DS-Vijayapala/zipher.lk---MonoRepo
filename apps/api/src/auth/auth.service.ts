@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Injectable, Post } from '@nestjs/common';
+import { BadRequestException, Body, Injectable, Post, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
@@ -49,7 +49,7 @@ export class AuthService {
 
     }
 
-    async login(userId: number, name: string) {
+    async login(userId: string, name: string) {
 
         const { accessToken } = await this.generateToken(userId);
 
@@ -61,7 +61,7 @@ export class AuthService {
 
     }
 
-    async generateToken(userId: number) {
+    async generateToken(userId: string) {
 
         const payload: AuthJwtPayload = { sub: userId };
 
@@ -71,6 +71,22 @@ export class AuthService {
 
     }
 
+    async validateJWTPayload(userId: string) {
+        const user = await this.userService.findOne(userId);
+
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        const currentUser = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        };
+
+        return currentUser;
+
+    }
 
 }
 

@@ -4,15 +4,16 @@ import { AuthController } from './auth.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { LocalStrategy } from './strategies/local.strategy';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import jwtConfig from './config/jwt-config';
 import { ConfigModule } from '@nestjs/config';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [JwtModule.registerAsync(
     jwtConfig.asProvider()),
   ConfigModule.forFeature(jwtConfig),],
   controllers: [AuthController],
-  providers: [AuthService, UserService, PrismaService, LocalStrategy],
+  providers: [AuthService, UserService, PrismaService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule { }
