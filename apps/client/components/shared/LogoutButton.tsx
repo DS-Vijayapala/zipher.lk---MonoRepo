@@ -1,5 +1,6 @@
 "use client";
 
+import axiosInstance from "@/lib/axiosInstence";
 import { useRouter } from "next/navigation";
 
 export default function LogoutButton() {
@@ -7,9 +8,22 @@ export default function LogoutButton() {
     const router = useRouter();
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "GET" });
-        router.refresh();
-        router.push("/auth/login");
+        try {
+            await Promise.all([
+                axiosInstance.post("/auth/signout"),
+                fetch("/api/auth/logout", { method: "GET" })
+            ]);
+
+            router.push("/auth/login");
+
+        } catch (error) {
+
+            console.error("Logout failed:", error);
+
+            router.push("/auth/login");
+
+        }
+
     };
 
     return (
