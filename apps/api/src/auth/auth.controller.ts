@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Request, Res, SetMetadata, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
@@ -6,16 +6,19 @@ import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
 import type { Response } from 'express';
+import { Public } from './decoraters/public.decoraters';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  @Public()
   @Post('signup')
   async registerUser(@Body() createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
   }
 
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('signin')
   async login(@Request() req) {
@@ -23,7 +26,6 @@ export class AuthController {
   }
 
   @Get('protected')
-  @UseGuards(JwtAuthGuard)
   async getAll(@Request() req) {
     return "Now you are accessing protected route " + req.user.id;
   }
@@ -35,11 +37,12 @@ export class AuthController {
     return this.authService.refreshToken(req.user.id, req.user.name);
   }
 
-
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   async googleLogin() { }
 
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Request() req, @Res() res: Response) {
@@ -52,7 +55,6 @@ export class AuthController {
       &refreshToken=${response.refreshToken}`);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('signout')
   async signOut(@Req() req) {
     return this.authService.signOut(req.user.id);
