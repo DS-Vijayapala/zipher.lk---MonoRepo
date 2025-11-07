@@ -7,6 +7,8 @@ import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
 import type { Response } from 'express';
 import { Public } from './decoraters/public.decoraters';
+import { Roles } from './decoraters/roles.decoraters';
+import { RolesGuard } from './guards/roles/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +27,7 @@ export class AuthController {
     return this.authService.login(req.user.id, req.user.name);
   }
 
+  @Roles("ADMIN")
   @Get('protected')
   async getAll(@Request() req) {
     return "Now you are accessing protected route " + req.user.id;
