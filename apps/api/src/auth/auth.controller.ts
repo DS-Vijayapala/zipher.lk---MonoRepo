@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +32,19 @@ export class AuthController {
   @Post('refresh')
   async refreshToken(@Request() req) {
     return this.authService.refreshToken(req.user.id, req.user.name);
+  }
+
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/login')
+  async googleLogin() { }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallback(@Request() req) {
+
+    console.log(`Google User`, req.user);
+
   }
 
 }

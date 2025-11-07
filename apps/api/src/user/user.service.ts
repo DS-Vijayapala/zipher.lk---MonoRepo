@@ -10,11 +10,7 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     const { name, email, password } = createUserDto;
 
-    if (!password) {
-      throw new BadRequestException('Password is required');
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password!, 10);
 
     const newUser = await this.prisma.user.create({
       data: {
