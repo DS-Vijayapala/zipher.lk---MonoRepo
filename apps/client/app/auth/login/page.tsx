@@ -49,6 +49,7 @@ export default function LoginPage() {
                         name: response.name,
                     },
                     accessToken: response.accessToken,
+                    refreshToken: response.refreshToken,
                 });
 
                 router.push("/dashboard");

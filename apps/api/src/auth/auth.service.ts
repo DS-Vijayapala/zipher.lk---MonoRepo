@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Injectable, Post, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, Inject, Injectable, Post, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
@@ -6,12 +6,15 @@ import * as bcrypt from 'bcrypt';
 import { AuthJwtPayload } from './types/auth-jwtpayload';
 import { JwtService } from '@nestjs/jwt';
 import id from 'zod/v4/locales/id.js';
+import refreshConfig from './config/refresh.config';
+import type { ConfigType } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
+        @Inject(refreshConfig.KEY) private readonly refreshTokenConfig: ConfigType<typeof refreshConfig>,
 
     ) { }
 
@@ -51,12 +54,13 @@ export class AuthService {
 
     async login(userId: string, name: string) {
 
-        const { accessToken } = await this.generateToken(userId);
+        const { accessToken, refreshToken } = await this.generateToken(userId);
 
         return {
             id: userId,
             name,
             accessToken,
+            refreshToken,
         }
 
     }
@@ -65,9 +69,12 @@ export class AuthService {
 
         const payload: AuthJwtPayload = { sub: userId };
 
-        const [accessToken] = await Promise.all([this.jwtService.signAsync(payload)])
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload),
+            this.jwtService.signAsync(payload, this.refreshTokenConfig)
+        ])
 
-        return { accessToken };
+        return { accessToken, refreshToken };
 
     }
 

@@ -9,6 +9,7 @@ export type SessionPayload = {
         name: string;
     };
     accessToken: string;
+    refreshToken: string;
 };
 
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET_KEY);
