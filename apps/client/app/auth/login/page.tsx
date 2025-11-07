@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { redirect, useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, Chrome } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstence';
@@ -85,6 +85,18 @@ export default function LoginPage() {
                 {/* Card */}
 
                 <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+
+
+                    <a
+                        href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/login`}
+                        className={`w-full py-3 px-4 rounded-lg font-medium text-gray-700
+                         bg-white border-2 border-gray-300 hover:bg-blue-200
+                          hover:border-gray-400 focus:ring-4 focus:ring-gray-200
+                           transition-all flex items-center justify-center gap-3 cursor-pointer`}
+                    >
+                        <Chrome className="w-5 h-5 text-blue-600" />
+                        <span>Continue with Google</span>
+                    </a>
 
 
 
