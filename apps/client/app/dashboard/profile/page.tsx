@@ -1,9 +1,15 @@
 import { getProfile } from '@/lib/actions'
+import { getSession } from '@/lib/session';
 import React from 'react'
 
 const ProfilePage = async () => {
 
     const profile = await getProfile()
+
+    const session = await getSession();
+
+    console.log(`Profile:${profile} , session : AccessToken:${session?.accessToken} , RefreshToken:${session?.refreshToken}`);
+
 
     return (
         <div>

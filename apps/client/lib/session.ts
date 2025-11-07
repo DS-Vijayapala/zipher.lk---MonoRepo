@@ -66,3 +66,26 @@ export async function deleteSession() {
     });
 
 }
+
+export async function updateSessionTokens(
+    { accessToken, refreshToken }: { accessToken: string; refreshToken: string; }) {
+
+    const cookie = (await cookies()).get(SESSION_NAME)?.value;
+
+    if (!cookie) return;
+
+    const { payload } = await jwtVerify(cookie, secret);
+
+    if (!payload) throw new Error("Invalid session payload");
+
+    const newPayload: SessionPayload = {
+        user: {
+            id: (payload as SessionPayload).user.id,
+            name: (payload as SessionPayload).user.name
+        },
+        accessToken,
+        refreshToken
+    };
+
+    await createSession(newPayload);
+}

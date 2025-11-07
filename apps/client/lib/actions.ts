@@ -9,46 +9,26 @@ export const getProfile = async () => {
 
         const session = await getSession();
 
-        if (!session || !session.accessToken) {
+        if (!session) {
             return {
                 ok: false,
-                error: "No valid session found. User is not authenticated.",
+                error: "Not authenticated",
             };
         }
 
-        const response = await axiosInstance.get("/auth/protected", {
-            headers: {
-                Authorization: `Bearer ${session.accessToken}`,
-            },
-        });
+        const response = await axiosInstance.get("/auth/protected");
 
         return {
             ok: true,
             data: response.data,
         };
 
-    } catch (err: any) {
-
-        if (err.response) {
-
-            return {
-                ok: false,
-                status: err.response.status,
-                error: err.response.data?.message || "Request failed",
-            };
-
-        }
-
-        if (err.request) {
-            return {
-                ok: false,
-                error: "Server did not respond. Check your network connection.",
-            };
-        }
+    }
+    catch (err: any) {
 
         return {
             ok: false,
-            error: err.message || "Unknown error occurred.",
+            error: err.response?.data?.message || err.message || "Request failed",
         };
 
     }
