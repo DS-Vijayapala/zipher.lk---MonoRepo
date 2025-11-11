@@ -1,4 +1,4 @@
-import AppBar from "@/components/shared/AppBar";
+import NavBar from "@/components/shared/NavBar";
 import { getSession } from "@/lib/session";
 import { log } from "console";
 import Image from "next/image";
@@ -12,10 +12,10 @@ export default async function Home() {
 
   return (
 
-    <div>
+    <div className="min-h-[200vh]">
 
       <header>
-        <AppBar />
+        <NavBar />
       </header>
 
       <main>
