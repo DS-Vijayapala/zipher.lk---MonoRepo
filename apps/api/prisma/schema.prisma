@@ -1,15 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// ----------------------------------------
+// Prisma Configuration
+// ----------------------------------------
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -18,13 +15,67 @@ enum Role {
   ADMIN
 }
 
+enum ApplicationStatus {
+  Pending
+  Accepted
+  Rejected
+}
+
 model User {
-  id               String   @id @default(cuid())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   name             String?
   email            String   @unique
   password         String?
   hashRefreshToken String?
   role             Role     @default(USER)
+  image            String?  @default("")
+  resume           String?  @default("")
+  location         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  jobs         Job[]            @relation("UserJobs")
+  applications JobApplication[] @relation("UserApplications")
+  points       Point?           @relation("UserPoints")
+}
+
+model Job {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  location    String
+  category    String
+  level       String
+  salary      Float
+  date        Int
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userID       String           @db.ObjectId
+  user         User             @relation("UserJobs", fields: [userID], references: [id])
+  applications JobApplication[] @relation("JobApplications")
+}
+
+model JobApplication {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String            @db.ObjectId
+  jobId     String            @db.ObjectId
+  status    ApplicationStatus @default(Pending)
+  date      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user User @relation("UserApplications", fields: [userId], references: [id])
+  job  Job  @relation("JobApplications", fields: [jobId], references: [id])
+}
+
+model Point {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @unique @db.ObjectId
+  points        Int      @default(100)
+  default_point Int      @default(100)
+  last_reset    DateTime @default(now())
+
+  user User @relation("UserPoints", fields: [userId], references: [id])
 }
