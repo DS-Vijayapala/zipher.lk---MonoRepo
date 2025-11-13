@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Mail } from "lucide-react";
 import Logo from "./Logo";
 
+const companyLinks = [
+    { label: "Home", href: "/" },
+    { label: "About Us", href: "/about-us" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms & Conditions", href: "/terms-and-conditions" },
+    { label: "Cookie Policy", href: "/cookie-policy" },
+];
+
 const Footer = () => {
     return (
         <footer className={`bg-slate-50 border-t border-slate-200 mt-24`}>
@@ -70,50 +78,17 @@ const Footer = () => {
                             <h3 className={`font-semibold text-slate-800 mb-6 text-lg`}>Company</h3>
 
                             <ul className={`text-slate-600 space-y-4`}>
-                                <li>
-                                    <Link
-                                        href="/"
-                                        className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
-                                    >
-                                        Home
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link
-                                        href="/about-us"
-                                        className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
-                                    >
-                                        About Us
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link
-                                        href="/privacy-policy"
-                                        className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
-                                    >
-                                        Privacy Policy
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link
-                                        href="/terms-and-conditions"
-                                        className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
-                                    >
-                                        Terms & Conditions
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link
-                                        href="/cookie-policy"
-                                        className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
-                                    >
-                                        Cookie Policy
-                                    </Link>
-                                </li>
+                                {companyLinks.map((item, index) => (
+                                    <li key={index}>
+                                        <Link
+                                            href={item.href}
+                                            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                                            className={`hover:text-emerald-600 transition-colors duration-200 text-sm cursor-pointer`}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
 
@@ -135,6 +110,7 @@ const Footer = () => {
 
                                 <Link
                                     href="/contact-us"
+                                    onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); }}
                                     className={`inline-flex items-center space-x-2 mt-4 px-4 py-2 
                                     bg-linear-to-r from-emerald-500 to-lime-500 hover:from-emerald-600
                                     hover:to-lime-600 text-white text-sm font-medium rounded-lg transition-all 
