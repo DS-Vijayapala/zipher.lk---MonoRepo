@@ -1,34 +1,36 @@
 "use client";
 
+import Footer from "@/components/shared/Footer";
 import NavBar from "@/components/shared/NavBar";
+import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/useUser";
+import AppDownload from "@/modules/home/components/AppDownload";
+import Hero from "@/modules/home/components/Hero";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 export default function Home() {
+
   const router = useRouter();
+
   const { data: session, isLoading } = useUser();
 
-  useEffect(() => {
-    if (!isLoading && !session) {
-      router.push("/auth/login");
-    }
-  }, [session, isLoading, router]);
+  const clickButtone = () => {
 
-  if (isLoading) return <p>Loading...</p>;
+    toast.success("Welcome to Zipher!");
+  }
 
-  if (!session) return null;
+
 
   return (
-    <div className="min-h-[200vh]">
-      <header>
-        <NavBar />
-      </header>
 
-      <main>
-        <h1>Welcome to the {session.user.name}</h1>
-      </main>
+    <div>
+
+      <Hero />
+      <AppDownload />
+      <Footer />
+
     </div>
   );
 }
-

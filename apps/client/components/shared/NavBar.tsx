@@ -1,164 +1,284 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { getSession } from "@/lib/session";
-import LogoutButton from "./LogoutButton";
-import Logo from "./Logo";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { Menu, X, User, LogOut } from "lucide-react";
+import Logo from "../shared/Logo";
+import UserButton from "@/components/shared/UserButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import axiosInstance from "@/lib/axiosInstence";
+import { useUser } from "@/hooks/useUser";
 
-const NavBar = () => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [session, setSession] = useState<any>(null);
+const NavBar: React.FC = () => {
+
+
+    const { data: session, isLoading } = useUser();
+
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const pathname = usePathname();
 
     const router = useRouter();
 
-    useEffect(() => {
-        const fetchSession = async () => {
-            const session = await getSession();
-            setSession(session || null);
-            console.log(session);
-        };
+    const links = [
 
-        fetchSession();
-    }, []);
+        { name: "Home", path: "/" },
+        { name: "Jobs", path: "/all-jobs" },
+        { name: "Dashboard", path: "/owner/dashboard" },
+
+    ];
+
+
+    // Lock body scroll when login modal open
+
+    const logout = async () => {
+
+        try {
+            await Promise.all([
+                axiosInstance.post("/auth/signout"),
+                fetch("/api/auth/logout", { method: "GET" })
+            ]);
+
+            router.push("/auth/login");
+
+            toast.success("You have been logged out successfully.");
+
+        } catch (error) {
+
+            console.error("Logout failed:", error);
+
+            router.push("/auth/login");
+
+        }
+
+
+    };
 
     return (
-        <div className="text-sm text-slate-800 w-full font-semibold">
 
-            {/* Navbar */}
-            <nav
-                className={`relative h-[70px] flex items-center justify-between 
-          px-6 md:px-16 lg:px-24 xl:px-32 py-4 text-slate-800 
-          transition-all shadow-md`}
-            >
-                {/* Logo */}
-                <Logo size="text-xl" highlightSize="text-2xl" />
+        <nav className={`sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b
+         border-slate-200 shadow-sm`}>
 
-                {/* Desktop Menu */}
-                <ul className="hidden md:flex items-center space-x-8 md:pl-28">
-                    <li>
-                        <Link
-                            href="/"
-                            className="hover:text-green-700 transition-colors duration-200"
-                        >
-                            Home
-                        </Link>
-                    </li>
-                    <li>
-                        <Link
-                            href="/all-jobs"
-                            className="hover:text-green-700 transition-colors duration-200"
-                        >
-                            Find Jobs
-                        </Link>
-                    </li>
-                    <li>
-                        <Link
-                            href="/pricing"
-                            className="hover:text-green-700 transition-colors duration-200"
-                        >
-                            Pricing
-                        </Link>
-                    </li>
-                    <li>
-                        <Link
-                            href="/contact-us"
-                            className="hover:text-green-700 transition-colors duration-200"
-                        >
-                            Contact Us
-                        </Link>
-                    </li>
-                </ul>
+            <div className="container px-4 2xl:px-20 mx-auto">
 
-                {/* Right Side Buttons */}
-                {!session ? (
-                    <Link
-                        href="/auth/login"
-                        className={`bg-green-700 text-white hover:bg-green-800 
-              px-9 py-2 rounded-full active:scale-95 transition-all hidden md:inline`}
+                <div className="flex items-center justify-between h-14">
+
+                    {/* Logo */}
+
+                    <div className="shrink-0">
+
+                        <Logo highlightSize="text-2xl" size="text-xl" />
+
+                    </div>
+
+                    {/* Desktop Navigation */}
+
+                    <div className="hidden md:flex items-center gap-8">
+
+                        <nav
+                            className="flex items-center gap-6"
+                            role="navigation"
+                            aria-label="Main navigation">
+
+                            {links.map((link) => (
+
+                                <Link
+                                    key={link.path}
+                                    href={link.path}
+                                    className={cn(
+                                        "relative text-sm font-medium transition-all duration-200 py-2 px-1 group",
+                                        link.path === pathname ? "text-green-700" : "text-slate-600 hover:text-green-600"
+                                    )}
+                                    aria-current={link.path === pathname ? "page" : undefined}
+                                >
+
+                                    {link.name}
+
+                                    <span
+                                        className={cn(
+                                            "absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-green-600 to-lime-500 transition-all duration-200",
+                                            link.path === pathname ? "w-full" : "w-0 group-hover:w-full"
+                                        )}
+                                    />
+
+                                </Link>
+
+                            ))}
+
+                        </nav>
+
+                        {/* Auth Section */}
+
+                        <div className="flex items-center gap-4 pl-4 border-l border-slate-200">
+
+                            {session ? (
+                                <UserButton
+                                    userData={session.user}
+                                    logout={logout}
+                                    navigate={router.push} />
+                            ) : (
+
+                                <Link
+                                    href={'/auth/login'}
+                                    className={`bg-linear-to-r from-green-600
+                                     to-lime-600 text-white text-sm font-medium
+                                      px-4 py-2 rounded-lg hover:from-green-700
+                                       hover:to-lime-700 transition-all duration-200
+                                        shadow-sm focus:outline-none `}>
+
+                                    Login
+
+                                </Link>
+
+                            )}
+
+                        </div>
+
+                    </div>
+
+                    {/* Mobile Menu Button */}
+
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className={`md:hidden p-2 rounded-lg text-slate-600
+                         hover:text-green-600 hover:bg-slate-50 transition-colors
+                          focus:outline-none focus:ring-1 focus:ring-green-500 focus:ring-offset-2"
+                        aria-label="Toggle mobile menu`}
+                        aria-expanded={mobileMenuOpen}
                     >
-                        Get started
-                    </Link>
-                ) : (
-                    <div>
-                        <span className="mr-4 font-bold text-green-800">
-                            Hello, {session.user.name}
-                        </span>
-                        <LogoutButton />
-                    </div>
-                )}
 
-                {/* Mobile Menu Toggle */}
-                <button
-                    aria-label="menu-btn"
-                    type="button"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="inline-block md:hidden active:scale-90 transition"
+                        {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+
+                    </button>
+
+                </div>
+
+                {/* Mobile Menu */}
+
+                <div
+                    className={cn(
+                        "md:hidden border-t border-slate-200 bg-white transition-transform duration-300 overflow-hidden",
+                        mobileMenuOpen ? "max-h-screen" : "max-h-0"
+                    )}
+                    role="menu"
+                    aria-label="Mobile menu"
                 >
-                    <div className="w-[30px] h-[30px] flex flex-col justify-center gap-1.5">
-                        <span className="w-full h-0.5 bg-green-800"></span>
-                        <span className="w-full h-0.5 bg-green-800"></span>
-                        <span className="w-full h-0.5 bg-green-800"></span>
-                    </div>
-                </button>
 
-                {/* Mobile Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="absolute top-[70px] left-0 w-full shadow-sm p-6 md:hidden">
-                        <ul className="flex flex-col space-y-4 text-lg">
-                            <li>
-                                <Link
-                                    href="/"
-                                    className="text-slate-800 hover:text-green-700 transition"
-                                >
-                                    Home
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/all-jobs"
-                                    className="text-slate-800 hover:text-green-700 transition"
-                                >
-                                    Find Jobs
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/pricing"
-                                    className="text-slate-800 hover:text-green-700 transition"
-                                >
-                                    Pricing
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    href="/contact-us"
-                                    className="text-slate-800 hover:text-green-700 transition"
-                                >
-                                    Contact Us
-                                </Link>
-                            </li>
-                        </ul>
+                    <div className="py-4 space-y-2">
 
-                        {/* Mobile Button */}
-                        {!session ? (
+                        {links.map((link) => (
                             <Link
-                                href="/auth/login"
-                                className={`mt-5 inline-block w-full text-center 
-                  bg-green-700 hover:bg-green-800 text-white 
-                  px-9 py-2 rounded-full active:scale-95 transition-all`}
+                                key={link.path}
+                                href={link.path}
+                                role="menuitem"
+                                className={cn(
+                                    "block px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    link.path === pathname
+                                        ? "text-green-700 bg-green-50"
+                                        : "text-slate-600 hover:text-green-600 hover:bg-slate-50"
+                                )}
+                                onClick={() => setMobileMenuOpen(false)}
                             >
-                                Get started
+
+                                {link.name}
+
                             </Link>
-                        ) : (
-                            <LogoutButton />
-                        )}
+
+                        ))}
+
+                        {/* Mobile Auth Section */}
+
+                        <div className="pt-2 border-t border-slate-100 mt-2">
+
+                            {session ? (
+
+                                <div className="space-y-2">
+
+                                    <div className="flex items-center gap-3 px-4 py-2">
+
+                                        <Avatar className="h-8 w-8">
+
+                                            <AvatarImage src={session?.user?.image} alt={session?.user?.name} />
+
+                                            <AvatarFallback className={`bg-linear-to-br from-green-500
+                                             to-lime-500 text-white text-sm`}>
+
+                                                {session?.user?.name ?
+                                                    session.user.name.charAt(0).toUpperCase() :
+                                                    <User className="h-4 w-4" />}
+
+                                            </AvatarFallback>
+
+                                        </Avatar>
+
+                                        <div className="flex-1 min-w-0">
+
+                                            <p className="text-sm font-medium text-slate-800 truncate">
+                                                {session?.user?.name || "User"}
+                                            </p>
+
+                                            <p className="text-xs text-slate-500 truncate">
+                                                {session?.user?.email || "user@example.com"}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            logout();
+                                            setMobileMenuOpen(false);
+                                        }}
+                                        className={`flex items-center gap-3 w-full px-4 py-2 text-sm
+                                         text-red-600 hover:bg-red-50 rounded-lg transition-colors
+                                          text-left focus:outline-none focus:ring-2 focus:ring-red-500
+                                           focus:ring-offset-2 focus:ring-offset-white`}
+                                    >
+
+                                        <LogOut className="h-4 w-4" />
+
+                                        Logout
+
+                                    </button>
+
+                                </div>
+
+                            ) : (
+
+                                <button
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                    }}
+                                    className={`w-full bg-linear-to-r from-green-600 to-lime-600
+                                     text-white text-sm font-medium px-4 py-2 rounded-lg
+                                      hover:from-green-700 hover:to-lime-700 transition-all 
+                                      duration-200 shadow-sm focus:outline-none focus:ring-2
+                                       focus:ring-green-500 focus:ring-offset-2`}
+                                >
+
+                                    Login
+
+                                </button>
+
+                            )}
+
+                        </div>
+
                     </div>
-                )}
-            </nav>
-        </div>
+
+                </div>
+
+            </div>
+
+        </nav>
+
     );
+
 };
+
 
 export default NavBar;
