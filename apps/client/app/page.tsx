@@ -1,29 +1,34 @@
+"use client";
+
 import NavBar from "@/components/shared/NavBar";
-import { getSession } from "@/lib/session";
-import { log } from "console";
-import Image from "next/image";
+import { useUser } from "@/hooks/useUser";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default async function Home() {
+export default function Home() {
+  const router = useRouter();
+  const { data: session, isLoading } = useUser();
 
-  const session = await getSession();
+  useEffect(() => {
+    if (!isLoading && !session) {
+      router.push("/auth/login");
+    }
+  }, [session, isLoading, router]);
 
-  console.log(`session: ${session?.accessToken}`);
+  if (isLoading) return <p>Loading...</p>;
 
+  if (!session) return null;
 
   return (
-
     <div className="min-h-[200vh]">
-
       <header>
         <NavBar />
       </header>
 
       <main>
-        <h1>Welcome to the Auth App</h1>
+        <h1>Welcome to the {session.user.name}</h1>
       </main>
-
     </div>
-
   );
-
 }
+
