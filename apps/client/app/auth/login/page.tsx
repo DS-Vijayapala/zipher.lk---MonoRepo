@@ -1,20 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { redirect, useRouter } from 'next/navigation';
-import clsx from 'clsx';
-import { Mail, Lock, Eye, EyeOff, LogIn, Chrome } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axiosInstence';
-import { create } from 'domain';
-import { createSession } from '@/lib/session';
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import clsx from "clsx";
+import { Mail, Lock, Eye, EyeOff, LogIn, Chrome } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import axiosInstance from "@/lib/axiosInstence";
+import { createSession } from "@/lib/session";
+import toast from "react-hot-toast";
+import Logo from "@/components/shared/Logo";
 
 export default function LoginPage() {
-
     const router = useRouter();
-
     const [showPassword, setShowPassword] = useState(false);
 
     const {
@@ -23,25 +21,26 @@ export default function LoginPage() {
         formState: { errors },
     } = useForm({
         defaultValues: {
-            email: '',
-            password: '',
+            email: "",
+            password: "",
         },
     });
 
     const loginMutation = useMutation({
         mutationFn: async (data: { email: string; password: string }) => {
-            const res = await axiosInstance.post('/auth/signin', data);
+            const res = await axiosInstance.post("/auth/signin", data);
             return res.data;
         },
-        onError: (error) => {
-            console.error('Login failed:', error);
-        },
 
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Login failed");
+        },
     });
 
     const onSubmit = (data: any) => {
         loginMutation.mutate(data, {
             onSuccess: async (response) => {
+                toast.success("Login successful!");
 
                 await createSession({
                     user: {
@@ -53,76 +52,89 @@ export default function LoginPage() {
                     refreshToken: response.refreshToken,
                 });
 
+                toast.success(`Welcome back, ${response.name}!`);
                 router.push("/dashboard");
-            }
-
+            },
         });
-
     };
 
     return (
-        <div className={clsx(`min-h-screen flex items-center justify-center
-         bg-linear-to-br from-blue-50 via-white to-purple-50 px-4 py-8`)}>
 
-            <div className="w-full max-w-md">
+        <div
+            className={clsx(
+                `h-screen flex items-center justify-center 
+                bg-white px-2 py-5`
+            )}
+        >
+            <div className={`w-full max-w-md`}>
 
-                {/* Header */}
 
-                <div className="text-center mb-8">
+                <div className={`text-center mb-8`}>
 
-                    <div className={`inline-flex items-center justify-center
-                         w-16 h-16 bg-blue-600 rounded-2xl mb-4`}>
-
-                        <LogIn className="w-8 h-8 text-white" />
-
+                    <div className={`flex justify-center mb-4`}>
+                        <Logo size="large" />
                     </div>
 
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+                    <h1 className={`text-3xl font-bold text-green-800 mb-2`}>
+                        Welcome Back
+                    </h1>
 
-                    <p className="text-gray-600">Sign in to continue to your account</p>
+                    <p className={`text-slate-800`}>
+                        Sign in to continue your journey
+                    </p>
 
                 </div>
 
                 {/* Card */}
 
-                <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+                <div className={`bg-white rounded-2xl shadow-xl p-8 space-y-6`}>
 
+                    {/* Continue with Google */}
 
                     <a
-                        href={`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/login`}
-                        className={`w-full py-3 px-4 rounded-lg font-medium text-gray-700
-                         bg-white border-2 border-gray-300 hover:bg-blue-200
-                          hover:border-gray-400 focus:ring-4 focus:ring-gray-200
-                           transition-all flex items-center justify-center gap-3 cursor-pointer`}
+                        onClick={() => {
+                            toast.loading("Redirecting to Google...");
+                            window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/login`;
+                        }}
+                        className={clsx(
+                            `w-full py-3 px-4 rounded-lg font-medium`,
+                            `bg-lime-100 text-green-800 border border-lime-300`,
+                            `hover:bg-lime-200 transition-all flex items-center justify-center gap-3 cursor-pointer`
+                        )}
                     >
-                        <Chrome className="w-5 h-5 text-blue-600" />
+                        <Chrome className={`w-5 h-5 text-green-700`} />
                         <span>Continue with Google</span>
                     </a>
 
+                    {/* Form */}
 
-
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                    <form onSubmit={handleSubmit(onSubmit)} className={`space-y-5`}>
 
                         {/* Email */}
 
                         <div>
 
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                            <label className={`block text-sm font-medium text-green-900 mb-2`}>
+                                Email Address
+                            </label>
 
-                            <div className="relative">
-
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <div className={`relative`}>
+                                <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600`} />
 
                                 <input
                                     type="email"
-                                    {...register('email', { required: 'Email is required' })}
-                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    {...register("email", { required: "Email is required" })}
+                                    className={`block w-full pl-10 pr-3 py-3 border border-lime-300 rounded-lg 
+                                    focus:ring-2 focus:ring-green-700 outline-none text-slate-800`}
                                     placeholder="you@example.com"
                                 />
-
                             </div>
 
-                            {errors.email && <p className="text-sm text-red-600 mt-2">{errors.email.message}</p>}
+                            {errors.email && (
+                                <p className={`text-sm text-red-600 mt-2`}>
+                                    {errors.email.message}
+                                </p>
+                            )}
 
                         </div>
 
@@ -130,44 +142,39 @@ export default function LoginPage() {
 
                         <div>
 
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <label className={`block text-sm font-medium text-green-900 mb-2`}>
+                                Password
+                            </label>
 
-                            <div className="relative">
-
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <div className={`relative`}>
+                                <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5
+                                     text-green-600`} />
 
                                 <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    {...register('password',
-                                        { required: 'Password is required' })}
-                                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    type={showPassword ? "text" : "password"}
+                                    {...register("password", {
+                                        required: "Password is required",
+                                    })}
+                                    className={`block w-full pl-10 pr-10 py-3 border border-lime-300 rounded-lg 
+                                    focus:ring-2 focus:ring-green-700 outline-none text-slate-800`}
                                     placeholder="••••••••"
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-green-700`}
                                 >
-
                                     {showPassword ? <EyeOff /> : <Eye />}
-
                                 </button>
 
                             </div>
 
-                            {errors.password && <p className="text-sm text-red-600 mt-2">{errors.password.message}</p>}
-
-                        </div>
-
-                        {/* Forgot password */}
-
-                        <div className="flex justify-end">
-
-                            <a href="/auth/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                                Forgot password?
-                            </a>
+                            {errors.password && (
+                                <p className={`text-sm text-red-600 mt-2`}>
+                                    {errors.password.message}
+                                </p>
+                            )}
 
                         </div>
 
@@ -177,32 +184,33 @@ export default function LoginPage() {
                             type="submit"
                             disabled={loginMutation.isPending}
                             className={clsx(
-                                'w-full py-3 px-4 rounded-lg font-medium text-white',
-                                'bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all',
-                                loginMutation.isPending && 'opacity-70 cursor-not-allowed'
-                            )}>
+                                `w-full py-3 px-4 rounded-lg font-medium text-white`,
+                                `bg-green-700 hover:bg-green-800`,
+                                `focus:ring-4 focus:ring-green-200 transition-all`,
+                                loginMutation.isPending && `opacity-70 cursor-not-allowed`
+                            )}
+                        >
 
-                            {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+                            {loginMutation.isPending ? "Signing in..." : "Sign In"}
 
                         </button>
 
                     </form>
 
-                    {/* Error Alert */}
-                    {loginMutation.isError && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                            {(loginMutation.error as any)?.response?.data?.message || 'Login failed'}
-                        </div>
-                    )}
-
                     {/* Sign Up */}
-                    <div className="text-center pt-4 border-t border-gray-200">
 
-                        <p className="text-sm text-gray-600">
-                            Don't have an account?{' '}
-                            <a href="/auth/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                    <div className={`text-center pt-4 border-t border-lime-200`}>
+
+                        <p className={`text-sm text-slate-700`}>
+
+                            Don’t have an account?{" "}
+                            <a
+                                href="/auth/signup"
+                                className={`text-green-700 hover:text-green-800 font-medium`}
+                            >
                                 Sign up
                             </a>
+
                         </p>
 
                     </div>

@@ -249,7 +249,8 @@ const NavBar: React.FC = () => {
 
                             ) : (
 
-                                <button
+                                <Link
+                                    href={'/auth/login'}
                                     onClick={() => {
                                         setMobileMenuOpen(false);
                                     }}
@@ -262,7 +263,7 @@ const NavBar: React.FC = () => {
 
                                     Login
 
-                                </button>
+                                </Link>
 
                             )}
 
