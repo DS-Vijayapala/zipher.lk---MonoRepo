@@ -45,6 +45,7 @@ export default function LoginPage() {
                 await createSession({
                     user: {
                         id: response.id,
+                        email: response.email,
                         name: response.name,
                         role: response.role,
                     },

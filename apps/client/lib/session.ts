@@ -11,6 +11,7 @@ export enum Role {
 export type SessionPayload = {
     user: {
         id: string;
+        email: string
         name: string;
         role: Role;
     };
@@ -87,6 +88,7 @@ export async function updateSessionTokens(
     const newPayload: SessionPayload = {
         user: {
             id: (payload as SessionPayload).user.id,
+            email: (payload as SessionPayload).user.email,
             name: (payload as SessionPayload).user.name,
             role: (payload as SessionPayload).user.role,
         },

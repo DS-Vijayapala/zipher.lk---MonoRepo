@@ -17,7 +17,9 @@ export async function GET(req: NextRequest) {
 
     const role = searchParams.get("role")
 
-    if (!accessToken || !refreshToken || !userId || !name || !role) {
+    const email = searchParams.get("email")
+
+    if (!accessToken || !refreshToken || !userId || !name || !role || !email) {
 
         throw new Error("Google Auth Failed");
     }
@@ -25,6 +27,7 @@ export async function GET(req: NextRequest) {
     await createSession({
         user: {
             id: userId,
+            email: email,
             name: name,
             role: role as Role,
         },
