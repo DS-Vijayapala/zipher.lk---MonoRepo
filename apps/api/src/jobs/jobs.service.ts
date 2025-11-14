@@ -9,14 +9,11 @@ export class JobsService {
 
   constructor(private readonly prismaService: PrismaService) { }
 
-  async findAllJobs({
-    page,
-    limit,
-  }: GetAllJobsQueryDto) {
+  async findAllJobs({ page, limit }: GetAllJobsQueryDto) {
 
-    // Prevent misuse
+    // Prevent misuse (limit between 1 and 50)
 
-    const safeLimit = Math.min(Math.max(limit, 1), 50); // Max 50 per request
+    const safeLimit = Math.min(Math.max(limit, 1), 50);
 
     const skip = (page - 1) * safeLimit;
 
@@ -28,7 +25,8 @@ export class JobsService {
         skip,
         take: safeLimit,
         where: { visible: true },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
+
         select: {
           id: true,
           title: true,
@@ -38,6 +36,16 @@ export class JobsService {
           level: true,
           salary: true,
           createdAt: true,
+
+          //  Owner (job creator) info
+          user: {
+            select: {
+              name: true,
+              image: true,
+            },
+
+          },
+
         },
 
       }),
