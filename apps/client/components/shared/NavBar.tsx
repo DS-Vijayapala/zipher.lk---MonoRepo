@@ -11,9 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import axiosInstance from "@/lib/axiosInstence";
 import { useUser } from "@/hooks/useUser";
+import { useQueryClient } from "@tanstack/react-query";
 
 const NavBar: React.FC = () => {
 
+    const queryClient = useQueryClient();
 
     const { data: session, isLoading } = useUser();
 
@@ -37,10 +39,15 @@ const NavBar: React.FC = () => {
     const logout = async () => {
 
         try {
+
             await Promise.all([
                 axiosInstance.post("/auth/signout"),
-                fetch("/api/auth/logout", { method: "GET" })
+                fetch("/api/auth/logout", { method: "GET" }),
             ]);
+
+            // THIS refreshes navbar immediately
+
+            queryClient.invalidateQueries({ queryKey: ["user-session"] });
 
             router.push("/auth/login");
 
@@ -53,7 +60,6 @@ const NavBar: React.FC = () => {
             router.push("/auth/login");
 
         }
-
 
     };
 
