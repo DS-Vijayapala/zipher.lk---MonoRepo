@@ -19,7 +19,7 @@ interface Job {
     description?: string;
     location: string;
     level: string;
-    userID: User;
+    user: User;
 }
 
 const SampleJobListing: React.FC = () => {

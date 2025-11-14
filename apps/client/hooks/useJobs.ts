@@ -11,10 +11,13 @@ interface User {
 export interface Job {
     id: string;
     title: string;
+    category?: string;
     description?: string;
     location: string;
     level: string;
-    userID: User;
+    salary?: number;
+    createdAt: string;
+    user: User;
 }
 
 export interface JobsResponse {
@@ -42,9 +45,14 @@ export const useJobs = (page: number = 1, limit: number = 10) => {
 
         queryFn: () => fetchJobs(page, limit),
 
+        // Cache for 5 minutes
+
         staleTime: 5 * 60 * 1000,
+
         gcTime: 5 * 60 * 1000,
+
         refetchOnWindowFocus: false,
+
         retry: 1,
 
     });
