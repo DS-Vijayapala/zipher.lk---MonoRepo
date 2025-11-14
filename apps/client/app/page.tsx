@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/useUser";
 import AppDownload from "@/modules/home/components/AppDownload";
 import Hero from "@/modules/home/components/Hero";
+import SampleJobListing from "@/modules/home/components/SampleJobListing";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
@@ -28,6 +29,7 @@ export default function Home() {
     <div>
 
       <Hero />
+      <SampleJobListing />
       <AppDownload />
       <Footer />
 
