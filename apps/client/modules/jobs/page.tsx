@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Title from "@/components/shared/Title";
 import Footer from "@/components/shared/Footer";
 import JobCard from "@/components/shared/JobCard";
@@ -12,13 +12,20 @@ import { useJobs } from "@/hooks/useJobs";
 import Loading from "@/components/shared/Loading";
 
 const AllJobsPage = () => {
+
     const [page, setPage] = useState<number>(1);
+
     const limit = 15; // production perPage
 
     const { data, isLoading, isError } = useJobs(page, limit);
 
     const jobs = data?.jobs || [];
+
     const totalPages = data?.totalPages || 1;
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }, [page]);
 
     return (
 
@@ -72,7 +79,6 @@ const AllJobsPage = () => {
                         disabled={page === 1}
                         onClick={() => {
                             setPage((prev) => Math.max(1, prev - 1));
-                            window.scrollTo({ top: 0, behavior: "smooth" });
                         }}>
                         Previous
                     </Button>
@@ -86,7 +92,6 @@ const AllJobsPage = () => {
                         disabled={page === totalPages}
                         onClick={() => {
                             setPage((prev) => prev + 1);
-                            window.scrollTo({ top: 0, behavior: "smooth" });
                         }}>
                         Next
                     </Button>
