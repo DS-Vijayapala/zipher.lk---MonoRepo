@@ -215,7 +215,7 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
 
                     <input
                         type="text"
-                        placeholder="Search by job title..."
+                        placeholder="Search by title..."
                         value={filters.title}
                         onChange={(e) => handleChange("title", e.target.value)}
                         className={`w-full rounded-md border border-gray-300 px-2 
