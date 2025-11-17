@@ -1,13 +1,21 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsPositive, Max, Min } from 'class-validator';
-import { DEFAULT_PAGE_LIMIT } from '../lib/constants';
+import { Type } from "class-transformer";
+import {
+    IsInt,
+    IsOptional,
+    Min,
+    Max,
+    IsString,
+    Length,
+    IsIn,
+} from "class-validator";
+import { DEFAULT_PAGE_LIMIT } from "../lib/constants";
 
 export class GetAllJobsQueryDto {
+
     @IsOptional()
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    @IsPositive()
     page: number = 1;
 
     @IsOptional()
@@ -15,6 +23,38 @@ export class GetAllJobsQueryDto {
     @IsInt()
     @Min(1)
     @Max(50)
-    @IsPositive()
     limit: number = DEFAULT_PAGE_LIMIT;
+
+    @IsOptional()
+    @IsString()
+    @Length(0, 100)
+    title?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(0, 50)
+    location?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(0, 50)
+    category?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(0, 30)
+    level?: string;
+
+    // Sorting controls
+
+    @IsOptional()
+    @IsString()
+    @IsIn(["createdAt", "salary", "date"])
+    sortBy?: "createdAt" | "salary" | "date";
+
+    @IsOptional()
+    @IsString()
+    @IsIn(["asc", "desc"])
+    sortOrder?: "asc" | "desc";
+
 }

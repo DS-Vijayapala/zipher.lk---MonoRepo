@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -9,63 +9,104 @@ export class JobsService {
 
   constructor(private readonly prismaService: PrismaService) { }
 
-  async findAllJobs({ page, limit }: GetAllJobsQueryDto) {
+  async findAllJobs(query: GetAllJobsQueryDto) {
 
-    // Prevent misuse (limit between 1 and 50)
+    try {
 
-    const safeLimit = Math.min(Math.max(limit, 1), 50);
+      const {
+        page = 1,
+        limit = 15,
+        title,
+        category,
+        location,
+        level,
+        sortBy = "createdAt",
+        sortOrder = "desc",
+      } = query;
 
-    const skip = (page - 1) * safeLimit;
+      const safeLimit = Math.min(Math.max(limit, 1), 50);
 
-    // Query DB
+      const safePage = Math.max(1, Math.trunc(page));
 
-    const [jobs, total] = await Promise.all([
+      const skip = (safePage - 1) * safeLimit;
 
-      this.prismaService.job.findMany({
-        skip,
-        take: safeLimit,
-        where: { visible: true },
-        orderBy: { createdAt: "desc" },
+      // Prevent array injection — sanitize inputs
 
-        select: {
-          id: true,
-          title: true,
-          category: true,
-          description: true,
-          location: true,
-          level: true,
-          salary: true,
-          createdAt: true,
+      const sanitize = (val?: unknown, max = 60): string | undefined => {
 
-          //  Owner (job creator) info
-          user: {
-            select: {
-              name: true,
-              image: true,
+        if (!val || typeof val !== "string") return undefined;
+
+        const clean = val.trim();
+
+        return clean.length > max ? clean.substring(0, max) : clean;
+
+      };
+
+      const sTitle = sanitize(title, 100);
+
+      const sLocation = sanitize(location, 50);
+
+      const sCategory = sanitize(category, 50);
+
+      const sLevel = sanitize(level, 30);
+
+      const where: any = { visible: true };
+
+      if (sTitle) where.title = { contains: sTitle, mode: "insensitive" };
+
+      if (sCategory) where.category = { equals: sCategory, mode: "insensitive" };
+
+      if (sLocation) where.location = { equals: sLocation, mode: "insensitive" };
+
+      if (sLevel) where.level = { equals: sLevel, mode: "insensitive" };
+
+      const orderBy: any = {};
+      orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
+
+      const [jobs, total] = await Promise.all([
+        this.prismaService.job.findMany({
+          skip,
+          take: safeLimit,
+          where,
+          orderBy,
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            category: true,
+            location: true,
+            level: true,
+            salary: true,
+            date: true,
+            createdAt: true,
+            updatedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                location: true,
+              },
             },
-
           },
+        }),
 
-        },
+        this.prismaService.job.count({ where }),
 
-      }),
+      ]);
 
-      this.prismaService.job.count({
-        where: { visible: true },
-      }),
+      return {
+        success: true,
+        currentPage: safePage,
+        perPage: safeLimit,
+        totalJobs: total,
+        totalPages: Math.ceil(total / safeLimit),
+        jobs,
+      };
 
-    ]);
-
-    const totalPages = Math.ceil(total / safeLimit);
-
-    return {
-      success: true,
-      currentPage: page,
-      perPage: safeLimit,
-      totalJobs: total,
-      totalPages,
-      jobs,
-    };
+    } catch (err) {
+      throw new InternalServerErrorException("Failed to fetch jobs");
+    }
 
   }
 
