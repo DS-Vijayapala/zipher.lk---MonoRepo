@@ -11,7 +11,6 @@ import { useSearchParams } from "next/navigation";
 import Loading from "@/components/shared/Loading";
 import { NotFoundCard } from "@/components/shared/NotFoundCard";
 import ErrorMessage from "@/components/shared/Error";
-import { TitleSearchSchema } from "./validations/SearchSchema";
 
 const AllJobsPage = () => {
 
@@ -43,7 +42,7 @@ const AllJobsPage = () => {
 
     }, [filters]);
 
-    // Fetch jobs using the GLOBAL HOOK (unchanged behavior)
+    // Fetch jobs using the GLOBAL HOOK
 
     const { data, isLoading, isError } = useJobs(
         page,
