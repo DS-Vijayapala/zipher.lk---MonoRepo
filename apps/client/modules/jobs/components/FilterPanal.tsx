@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Select,
     SelectTrigger,
@@ -8,13 +8,10 @@ import {
     SelectItem,
     SelectValue,
 } from "@/components/ui/select";
-
 import { Button } from "@/components/ui/button";
 import { jobLocations, jobCategories } from "@/modules/jobs/libs/constants";
 import { useSearchParams, useRouter } from "next/navigation";
-import clsx from "clsx";
 import { SlidersHorizontal } from "lucide-react";
-
 import {
     Dialog,
     DialogContent,
@@ -31,8 +28,6 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
 
     const [isOpen, setIsOpen] = useState(false);
 
-    // All filters
-
     const [filters, setFilters] = useState({
         title: searchParams.get("title") || "",
         location: searchParams.get("location") || "",
@@ -40,7 +35,9 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
         level: searchParams.get("level") || "",
     });
 
-    // URL update function
+    // Local input state ONLY for title (debounced)
+
+    const [titleInput, setTitleInput] = useState(filters.title);
 
     const updateURL = (updatedFilters: any) => {
 
@@ -55,15 +52,35 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
     };
 
     const handleChange = (key: string, value: string) => {
+
         const updated = { ...filters, [key]: value };
         setFilters(updated);
         updateURL(updated);
+
     };
 
     const clearFilters = () => {
+
         setFilters({ title: "", location: "", category: "", level: "" });
+        setTitleInput("");
         router.push("/all-jobs");
+
     };
+
+    //TITLE DEBOUNCE LOGIC
+
+    useEffect(() => {
+
+        const timeout = setTimeout(() => {
+
+            handleChange("title", titleInput);
+
+        }, 500); // 500ms debounce delay
+
+        return () => clearTimeout(timeout);
+
+    }, [titleInput]);
+
 
     return (
 
@@ -74,12 +91,11 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
             <div className="md:hidden flex items-center justify-between w-full mt-3">
 
                 {/* Mobile search input */}
-
                 <input
                     type="text"
-                    placeholder="Search job title..."
-                    value={filters.title}
-                    onChange={(e) => handleChange("title", e.target.value)}
+                    placeholder="Search by title..."
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value)}
                     className="w-full rounded-xl border px-4 py-3 text-sm border-gray-300"
                 />
 
@@ -114,11 +130,9 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
                                 </SelectTrigger>
 
                                 <SelectContent>
-                                    {jobLocations.map((loc) => (
 
-                                        <SelectItem key={loc} value={loc}>
-                                            {loc}
-                                        </SelectItem>
+                                    {jobLocations.map((loc) => (
+                                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                                     ))}
 
                                 </SelectContent>
@@ -138,16 +152,14 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
                                 <SelectContent>
 
                                     {jobCategories.map((cat) => (
-                                        <SelectItem key={cat} value={cat}>
-                                            {cat}
-                                        </SelectItem>
+                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                     ))}
 
                                 </SelectContent>
 
                             </Select>
 
-                            {/* Experience Level */}
+                            {/* Level */}
 
                             <Select
                                 value={filters.level}
@@ -182,18 +194,17 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
                                 </Button>
 
                                 {(filters.title || filters.location || filters.category || filters.level) && (
-
                                     <Button
                                         onClick={clearFilters}
                                         className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 w-full">
                                         Clear
                                     </Button>
-
                                 )}
 
                             </div>
 
                         </div>
+
 
                     </DialogContent>
 
@@ -211,18 +222,17 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
 
                 <div className="flex flex-row items-center gap-4 w-full">
 
-                    {/* Title Search */}
+                    {/* Debounced Title Search */}
 
                     <input
                         type="text"
                         placeholder="Search by title..."
-                        value={filters.title}
-                        onChange={(e) => handleChange("title", e.target.value)}
-                        className={`w-full rounded-md border border-gray-300 px-2 
-                        py-1 text-gray-900 placeholder:text-sm`} />
+                        value={titleInput}
+                        onChange={(e) => setTitleInput(e.target.value)}
+                        className="w-full rounded-md border border-gray-300 px-2 py-1 text-gray-900 placeholder:text-sm"
+                    />
 
                     {/* Location */}
-
                     <Select
                         value={filters.location}
                         onValueChange={(v) => handleChange("location", v)}>
@@ -234,9 +244,7 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
                         <SelectContent>
 
                             {jobLocations.map((loc) => (
-                                <SelectItem key={loc} value={loc}>
-                                    {loc}
-                                </SelectItem>
+                                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                             ))}
 
                         </SelectContent>
@@ -256,16 +264,14 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
                         <SelectContent>
 
                             {jobCategories.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                    {cat}
-                                </SelectItem>
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                             ))}
 
                         </SelectContent>
 
                     </Select>
 
-                    {/* Experience Level */}
+                    {/* Level */}
 
                     <Select
                         value={filters.level}
@@ -286,24 +292,18 @@ const FilterPanel = ({ onSearch }: { onSearch?: () => void }) => {
 
                     </Select>
 
-                    {/* Search */}
-
                     <Button
                         onClick={onSearch}
                         className="bg-green-700 hover:bg-green-800 text-white px-6 cursor-pointer">
                         Search Talents
                     </Button>
 
-                    {/* Clear */}
-
                     {(filters.title || filters.location || filters.category || filters.level) && (
-
                         <Button
                             onClick={clearFilters}
                             className="bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 px-4 cursor-pointer">
                             Clear
                         </Button>
-
                     )}
 
                 </div>
