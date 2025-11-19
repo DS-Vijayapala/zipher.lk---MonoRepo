@@ -3,6 +3,7 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
+import { buildJobWhereQuery, buildSortOrder } from './helpers/job-filters.helper';
 
 @Injectable()
 export class JobsService {
@@ -30,40 +31,19 @@ export class JobsService {
 
       const skip = (safePage - 1) * safeLimit;
 
-      // Prevent array injection — sanitize inputs
+      // Use Helper Functions
 
-      const sanitize = (val?: unknown, max = 60): string | undefined => {
+      const where = buildJobWhereQuery({
+        title,
+        category,
+        location,
+        level,
+      });
 
-        if (!val || typeof val !== "string") return undefined;
-
-        const clean = val.trim();
-
-        return clean.length > max ? clean.substring(0, max) : clean;
-
-      };
-
-      const sTitle = sanitize(title, 100);
-
-      const sLocation = sanitize(location, 50);
-
-      const sCategory = sanitize(category, 50);
-
-      const sLevel = sanitize(level, 30);
-
-      const where: any = { visible: true };
-
-      if (sTitle) where.title = { contains: sTitle, mode: "insensitive" };
-
-      if (sCategory) where.category = { equals: sCategory, mode: "insensitive" };
-
-      if (sLocation) where.location = { equals: sLocation, mode: "insensitive" };
-
-      if (sLevel) where.level = { equals: sLevel, mode: "insensitive" };
-
-      const orderBy: any = {};
-      orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
+      const orderBy = buildSortOrder(sortBy, sortOrder);
 
       const [jobs, total] = await Promise.all([
+
         this.prismaService.job.findMany({
           skip,
           take: safeLimit,
@@ -75,6 +55,7 @@ export class JobsService {
             description: true,
             category: true,
             location: true,
+            jobType: true,
             level: true,
             salary: true,
             date: true,
@@ -82,7 +63,6 @@ export class JobsService {
             updatedAt: true,
             user: {
               select: {
-                id: true,
                 name: true,
                 image: true,
                 location: true,
@@ -95,19 +75,63 @@ export class JobsService {
 
       ]);
 
+      // Extract job IDs
+
+      const jobIds = jobs.map((job) => job.id);
+
+      if (jobIds.length === 0) {
+
+        return {
+          success: true,
+          currentPage: safePage,
+          perPage: safeLimit,
+          totalJobs: total,
+          totalPages: Math.ceil(total / safeLimit),
+          jobs: [],
+        };
+
+      }
+
+      // Count applications
+
+      const applicationStats =
+        await this.prismaService.jobApplication.groupBy({
+          by: ["jobId"],
+          _count: { jobId: true },
+          where: { jobId: { in: jobIds } },
+        });
+
+      const countMap = new Map(
+        applicationStats.map((s) => [s.jobId, s._count.jobId])
+      );
+
+      // Add count to jobs
+
+      const jobsWithCounts = jobs.map((job) => ({
+        ...job,
+        applicationCount: countMap.get(job.id) ?? 0,
+      }));
+
+      // Final response
+
       return {
         success: true,
         currentPage: safePage,
         perPage: safeLimit,
         totalJobs: total,
         totalPages: Math.ceil(total / safeLimit),
-        jobs,
+        jobs: jobsWithCounts,
       };
 
     } catch (err) {
+
+      console.error(err);
+
       throw new InternalServerErrorException("Failed to fetch jobs");
+
     }
 
   }
+
 
 }

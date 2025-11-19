@@ -21,6 +21,14 @@ enum ApplicationStatus {
   Rejected
 }
 
+enum JobType {
+  FullTime
+  PartTime
+  Remote
+  Contract
+  Internship
+}
+
 model User {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
   name             String?
@@ -46,6 +54,7 @@ model Job {
   location    String
   category    String
   level       String
+  jobType     JobType  @default(FullTime)
   salary      Float
   date        Int
   visible     Boolean  @default(true)
