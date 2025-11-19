@@ -33,7 +33,7 @@ interface Job {
     jobType?: string;
     category?: string;
     createdAt?: string;
-    applicationsCount?: number;
+    applicationCount?: number;
     user: User;
 }
 
@@ -42,6 +42,7 @@ interface OwnerJobCardProps {
 }
 
 const JobCard: React.FC<OwnerJobCardProps> = ({ job }) => {
+
     const router = useRouter();
 
     const trimmedTitle =
@@ -143,7 +144,7 @@ const JobCard: React.FC<OwnerJobCardProps> = ({ job }) => {
                          rounded-xl flex items-center gap-1 text-xs hover:bg-slate-200 
                          transition cursor-pointer">
                             <Users className="w-3 h-3" />
-                            10 users applied
+                            {job.applicationCount ?? 0} users applied
                         </Badge>
 
                     </div>

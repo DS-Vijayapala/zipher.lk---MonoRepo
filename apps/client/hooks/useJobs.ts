@@ -16,8 +16,10 @@ export interface Job {
     location: string;
     level: string;
     salary?: number;
+    jobType?: string;
     createdAt: string;
     user: User;
+    applicationCount: number;
 }
 
 export interface JobsResponse {
