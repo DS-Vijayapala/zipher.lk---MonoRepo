@@ -1,4 +1,4 @@
-import AllJobsPage from '@/modules/jobs/page'
+import AllJobsPage from '@/modules/jobs/all-jobs/page'
 import React from 'react'
 
 const AllJobs = () => {

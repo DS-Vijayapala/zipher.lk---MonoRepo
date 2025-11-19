@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Title from "@/components/shared/Title";
 import Footer from "@/components/shared/Footer";
 import JobCard from "@/components/shared/JobCard";
-import FilterPanel from "@/modules/jobs/components/FilterPanal";
+import FilterPanel from "@/modules/jobs/all-jobs/components/FilterPanal";
 import { Button } from "@/components/ui/button";
 import { useJobs } from "@/hooks/useJobs";
 import { useSearchParams } from "next/navigation";

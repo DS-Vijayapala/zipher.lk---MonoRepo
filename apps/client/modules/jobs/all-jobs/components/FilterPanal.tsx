@@ -9,7 +9,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { jobLocations, jobCategories } from "@/modules/jobs/libs/constants";
+import { jobLocations, jobCategories } from "@/modules/jobs/all-jobs/libs/constants";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import {
