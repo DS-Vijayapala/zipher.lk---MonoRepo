@@ -127,6 +127,14 @@ const JobCard: React.FC<OwnerJobCardProps> = ({ job }) => {
 
                     </div>
 
+                    {/* DESCRIPTION */}
+
+                    <p className="text-sm text-slate-800 leading-relaxed line-clamp-2">
+                        {job.description
+                            ? job.description.replace(/<[^>]*>/g, "").slice(0, 120) + "..."
+                            : "No description available."}
+                    </p>
+
                     {/* TYPE + USERS APPLIED */}
 
                     <div className="flex justify-between items-center">
@@ -148,14 +156,6 @@ const JobCard: React.FC<OwnerJobCardProps> = ({ job }) => {
                         </Badge>
 
                     </div>
-
-                    {/* DESCRIPTION */}
-
-                    <p className="text-sm text-slate-800 leading-relaxed line-clamp-2">
-                        {job.description
-                            ? job.description.replace(/<[^>]*>/g, "").slice(0, 120) + "..."
-                            : "No description available."}
-                    </p>
 
                 </div>
 
