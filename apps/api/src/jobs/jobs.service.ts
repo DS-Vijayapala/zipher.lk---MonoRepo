@@ -1,18 +1,35 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
 import { buildJobWhereQuery, buildSortOrder } from './helpers/job-filters.helper';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { RedisService } from 'src/common/redis/redis.service';
 
 @Injectable()
 export class JobsService {
 
-  constructor(private readonly prismaService: PrismaService) { }
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly redisService: RedisService
+  ) { }
 
   async findAllJobs(query: GetAllJobsQueryDto) {
 
     try {
+
+      // Build cache key
+
+      const cacheKey = this.buildCacheKey(query);
+
+      // Try Redis cache first
+
+      const cached = await this.redisService.get(cacheKey);
+
+      if (cached) {
+        return cached;
+      }
 
       const {
         page = 1,
@@ -43,7 +60,6 @@ export class JobsService {
       const orderBy = buildSortOrder(sortBy, sortOrder);
 
       const [jobs, total] = await Promise.all([
-
         this.prismaService.job.findMany({
           skip,
           take: safeLimit,
@@ -72,7 +88,6 @@ export class JobsService {
         }),
 
         this.prismaService.job.count({ where }),
-
       ]);
 
       // Extract job IDs
@@ -81,7 +96,7 @@ export class JobsService {
 
       if (jobIds.length === 0) {
 
-        return {
+        const emptyResponse = {
           success: true,
           currentPage: safePage,
           perPage: safeLimit,
@@ -90,16 +105,21 @@ export class JobsService {
           jobs: [],
         };
 
+        // Cache EMPTY result too
+
+        await this.redisService.set(cacheKey, emptyResponse, 120);
+
+        return emptyResponse;
+
       }
 
       // Count applications
 
-      const applicationStats =
-        await this.prismaService.jobApplication.groupBy({
-          by: ["jobId"],
-          _count: { jobId: true },
-          where: { jobId: { in: jobIds } },
-        });
+      const applicationStats = await this.prismaService.jobApplication.groupBy({
+        by: ["jobId"],
+        _count: { jobId: true },
+        where: { jobId: { in: jobIds } },
+      });
 
       const countMap = new Map(
         applicationStats.map((s) => [s.jobId, s._count.jobId])
@@ -112,9 +132,8 @@ export class JobsService {
         applicationCount: countMap.get(job.id) ?? 0,
       }));
 
-      // Final response
-
-      return {
+      // Build final response
+      const response = {
         success: true,
         currentPage: safePage,
         perPage: safeLimit,
@@ -123,6 +142,11 @@ export class JobsService {
         jobs: jobsWithCounts,
       };
 
+      // Cache for 5 minutes
+      await this.redisService.set(cacheKey, response, 300);
+
+      return response;
+
     } catch (err) {
 
       console.error(err);
@@ -130,12 +154,24 @@ export class JobsService {
       throw new InternalServerErrorException("Failed to fetch jobs");
 
     }
-
   }
 
   async getJobDataById(jobId: string, userId: string | null) {
 
-    // 1. Fetch job and (if logged in) applied status in parallel
+    // Build cache key
+
+    const cacheKey = this.buildJobDetailKey(jobId, userId);
+
+    // Check cache first
+
+    const cached = await this.redisService.get(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    // Query job + applied status in parallel
+
     const jobPromise = this.prismaService.job.findUnique({
       where: { id: jobId },
       include: {
@@ -154,7 +190,8 @@ export class JobsService {
 
     if (!job) throw new NotFoundException("Job not found");
 
-    // 2. Recommended jobs
+    // Fetch recommended jobs
+
     const recommended = await this.prismaService.job.findMany({
       where: {
         userID: job.user.id,
@@ -180,11 +217,42 @@ export class JobsService {
       }
     });
 
-    return {
+    // Final response
+
+    const response = {
       job,
       isApplied: Boolean(applied),
       relatedJobs: recommended
     };
+
+    // 6: Cache for 5 minutes
+
+    await this.redisService.set(cacheKey, response, 300);
+
+    return response;
+
+  }
+
+  // ---------------------------- HELPER METHODS ----------------------------
+
+
+  private buildCacheKey(query: GetAllJobsQueryDto): string {
+    const {
+      page = 1,
+      limit = 15,
+      title = '',
+      category = '',
+      location = '',
+      level = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = query;
+
+    return `jobs:list:${page}:${limit}:${title}:${category}:${location}:${level}:${sortBy}:${sortOrder}`;
+  }
+
+  private buildJobDetailKey(jobId: string, userId: string | null): string {
+    return `job:detail:${jobId}:${userId ?? "guest"}`;
   }
 
 
