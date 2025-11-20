@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -132,6 +132,71 @@ export class JobsService {
     }
 
   }
+
+  async getJobData(jobId: string, userId: string) {
+    const jobPromise = this.prismaService.job.findUnique({
+      where: { id: jobId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          }
+        }
+      }
+    });
+
+    const appliedPromise = this.prismaService.jobApplication.findFirst({
+      where: {
+        jobId,
+        userId
+      },
+      select: { id: true }
+    });
+
+    const [job, applied] = await Promise.all([
+      jobPromise,
+      appliedPromise
+    ]);
+
+    if (!job) throw new NotFoundException("Job not found");
+
+    // Recommended jobs by same poster (NOT applied by user)
+    const recommended = await this.prismaService.job.findMany({
+      where: {
+        userID: job.userID,
+        id: { not: jobId },
+        applications: {
+          none: {
+            userId // user didn't apply
+          }
+        },
+        visible: true
+      },
+      take: 3,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        location: true,
+        category: true,
+        level: true,
+        jobType: true,
+        createdAt: true,
+        user: {
+          select: { name: true, image: true }
+        }
+      }
+    });
+
+    return {
+      job,
+      isApplied: Boolean(applied),
+      relatedJobs: recommended
+    };
+  }
+
 
 
 }
