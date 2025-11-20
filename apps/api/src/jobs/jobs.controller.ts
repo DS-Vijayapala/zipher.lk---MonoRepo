@@ -24,8 +24,8 @@ export class JobsController {
     @Param("id") id: string,
     @Req() req: any
   ) {
-    const userId = req.user?.sub; // Extract current user ID from JWT
-    return this.jobsService.getJobData(id, userId);
+    const userId = req.user?.sub || null;
+    return this.jobsService.getJobDataById(id, userId);
   }
 
 

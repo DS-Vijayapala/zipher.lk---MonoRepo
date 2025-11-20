@@ -133,46 +133,36 @@ export class JobsService {
 
   }
 
-  async getJobData(jobId: string, userId: string) {
+  async getJobDataById(jobId: string, userId: string | null) {
+
+    // 1. Fetch job and (if logged in) applied status in parallel
     const jobPromise = this.prismaService.job.findUnique({
       where: { id: jobId },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          }
-        }
+        user: { select: { id: true, name: true, image: true } }
       }
     });
 
-    const appliedPromise = this.prismaService.jobApplication.findFirst({
-      where: {
-        jobId,
-        userId
-      },
-      select: { id: true }
-    });
+    const appliedPromise = userId
+      ? this.prismaService.jobApplication.findFirst({
+        where: { jobId, userId },
+        select: { id: true }
+      })
+      : Promise.resolve(null);
 
-    const [job, applied] = await Promise.all([
-      jobPromise,
-      appliedPromise
-    ]);
+    const [job, applied] = await Promise.all([jobPromise, appliedPromise]);
 
     if (!job) throw new NotFoundException("Job not found");
 
-    // Recommended jobs by same poster (NOT applied by user)
+    // 2. Recommended jobs
     const recommended = await this.prismaService.job.findMany({
       where: {
-        userID: job.userID,
+        userID: job.user.id,
         id: { not: jobId },
-        applications: {
-          none: {
-            userId // user didn't apply
-          }
-        },
-        visible: true
+        visible: true,
+        ...(userId
+          ? { applications: { none: { userId } } }
+          : {})
       },
       take: 3,
       orderBy: { createdAt: "desc" },
