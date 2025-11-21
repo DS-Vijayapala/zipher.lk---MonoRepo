@@ -1,4 +1,6 @@
-import React from 'react';
+
+import JobDetailsAndApply from '@/modules/jobs/job-details/page';
+
 
 type JobDetailsPageProps = {
     params: {
@@ -8,13 +10,10 @@ type JobDetailsPageProps = {
 
 
 export default async function JobDetailsPage({ params }:
+
     { params: Promise<JobDetailsPageProps['params']> }) {
 
     const { jobId } = await params;
 
-    return (
-        <div>
-            Job ID: {jobId}
-        </div>
-    );
+    return <JobDetailsAndApply id={jobId} />;
 }
