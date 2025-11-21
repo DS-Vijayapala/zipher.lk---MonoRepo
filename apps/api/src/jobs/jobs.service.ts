@@ -142,8 +142,8 @@ export class JobsService {
         jobs: jobsWithCounts,
       };
 
-      // Cache for 5 minutes
-      await this.redisService.set(cacheKey, response, 300);
+      // Cache for 15 minutes
+      await this.redisService.set(cacheKey, response, 900);
 
       return response;
 
@@ -225,9 +225,9 @@ export class JobsService {
       relatedJobs: recommended
     };
 
-    // 6: Cache for 5 minutes
+    // 6: Cache for 15 minutes
 
-    await this.redisService.set(cacheKey, response, 300);
+    await this.redisService.set(cacheKey, response, 900);
 
     return response;
 
