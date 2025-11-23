@@ -44,4 +44,9 @@ export class UserService {
       data: { hashRefreshToken: hashRT },
     });
   }
+
+  async getDashboardData(userId: string) {
+
+    return { message: `Dashboard data for user with ID: ${userId}` };
+  }
 }
