@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { JobsModule } from './jobs/jobs.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { RedisModule } from './common/redis/redis.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports:
@@ -21,8 +23,23 @@ import { RedisModule } from './common/redis/redis.module';
         ttl: 300,
       }),
       RedisModule,
+      ThrottlerModule.forRoot({
+        throttlers: [
+          {
+            ttl: 300000, // 5 minutes
+            limit: 50,
+          },
+        ],
+      }),
     ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    }
+  ],
 })
 export class AppModule { }
