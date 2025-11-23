@@ -106,7 +106,7 @@ const UserButton: React.FC<UserButtonProps> = ({ userData, logout, navigate }) =
                 {/* Profile */}
                 <DropdownMenuItem
                     className="cursor-pointer focus:bg-slate-50 max-sm:hidden max-lg:hidden"
-                    onClick={() => handleNavigate("/owner/profile")}
+                    onClick={() => handleNavigate("/dashboard/profile")}
                 >
 
                     <User className="h-4 w-4 mr-3" />

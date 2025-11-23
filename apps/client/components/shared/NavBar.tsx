@@ -29,7 +29,7 @@ const NavBar: React.FC = () => {
 
         { name: "Home", path: "/" },
         { name: "Jobs", path: "/all-jobs" },
-        { name: "Dashboard", path: "/owner/dashboard" },
+        { name: "Dashboard", path: "/dashboard" },
 
     ];
 
@@ -96,21 +96,29 @@ const NavBar: React.FC = () => {
                                     href={link.path}
                                     className={cn(
                                         "relative text-sm font-medium transition-all duration-200 py-2 px-1 group",
-                                        link.path === pathname ? "text-green-700" : "text-slate-600 hover:text-green-600"
+                                        pathname === link.path || pathname.startsWith(`${link.path}/`)
+                                            ? "text-green-700"
+                                            : "text-slate-600 hover:text-green-600"
                                     )}
-                                    aria-current={link.path === pathname ? "page" : undefined}
-                                >
+                                    aria-current={
+                                        pathname === link.path || pathname.startsWith(`${link.path}/`)
+                                            ? "page"
+                                            : undefined
+                                    }>
 
                                     {link.name}
 
                                     <span
                                         className={cn(
                                             "absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-green-600 to-lime-500 transition-all duration-200",
-                                            link.path === pathname ? "w-full" : "w-0 group-hover:w-full"
+                                            pathname === link.path || pathname.startsWith(`${link.path}/`)
+                                                ? "w-full"
+                                                : "w-0 group-hover:w-full"
                                         )}
                                     />
 
                                 </Link>
+
 
                             ))}
 
