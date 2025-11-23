@@ -10,6 +10,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { RedisModule } from './common/redis/redis.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { UploadModule } from './common/upload/upload.module';
 
 @Module({
   imports:
@@ -31,6 +32,7 @@ import { APP_GUARD } from '@nestjs/core';
           },
         ],
       }),
+      UploadModule,
     ],
   controllers: [AppController],
   providers: [
