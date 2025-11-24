@@ -15,6 +15,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RolesGuard } from './guards/roles/roles.guard';
+import { RedisModule } from 'src/common/redis/redis.module';
 
 @Module({
   imports: [JwtModule.registerAsync(
@@ -22,6 +23,7 @@ import { RolesGuard } from './guards/roles/roles.guard';
   ConfigModule.forFeature(jwtConfig),
   ConfigModule.forFeature(refreshConfig),
   ConfigModule.forFeature(googleOauthConfig),
+    RedisModule,
   ],
   controllers: [AuthController],
   providers: [
