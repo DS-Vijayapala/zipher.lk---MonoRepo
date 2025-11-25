@@ -1,11 +1,24 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
 interface ErrorProps {
     title?: string;
     messages?: string | string[];
+    isShow?: boolean;
+    path?: string;
+    pathName?: string;
 }
 
-export default function ErrorMessage({ title = "Error", messages }: ErrorProps) {
+export default function ErrorMessage({
+    title = "Error",
+    messages,
+    isShow = false,
+    path,
+    pathName }: ErrorProps) {
+
+    const router = useRouter();
 
     return (
 
@@ -26,6 +39,17 @@ export default function ErrorMessage({ title = "Error", messages }: ErrorProps) 
                 <p className="text-center">{messages}</p>
             )}
 
+            <div className="mt-5">
+                {
+                    isShow ?
+                        <Button
+                            className="cursor-pointer"
+                            onClick={() => router.push(path ?? "/")}>
+                            {pathName ?? "Home"}
+                        </Button> : null
+                }
+
+            </div>
         </div>
 
     );
