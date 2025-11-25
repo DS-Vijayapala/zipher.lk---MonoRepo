@@ -95,7 +95,7 @@ const ZensCard = ({ remainingPoints = 0 }) => {
 
                             <h3 className={`font-semibold text-lg flex items-center gap-2 ${colors.title}`}>
 
-                                Job Posting Zens
+                                Platform Points
 
                                 <TooltipProvider>
 
@@ -115,9 +115,9 @@ const ZensCard = ({ remainingPoints = 0 }) => {
                                               shadow-md p-3 mb-2 !after:hidden"
                                         >
 
-                                            <p className="font-semibold text-emerald-700 mb-1">What are Zens?</p>
+                                            <p className="font-semibold text-emerald-700 mb-1">What are Points?</p>
 
-                                            <p className="mb-2">Zens are your platform credits. They are
+                                            <p className="mb-2">Points are your platform credits. They are
                                                 used for different actions:</p>
 
                                             <ul className="list-disc list-inside space-y-1 mb-2">
@@ -125,21 +125,21 @@ const ZensCard = ({ remainingPoints = 0 }) => {
                                                 <li>
 
                                                     <span className="font-medium text-emerald-600">
-                                                        {JOB_COST} Zens</span> required to post a new job.
+                                                        {JOB_COST} points</span> required to post a new job.
 
                                                 </li>
 
                                                 <li>
 
                                                     <span className="font-medium text-emerald-600">
-                                                        {JOB_APPLY_COST} Zens</span> required to apply for a job.
+                                                        {JOB_APPLY_COST} points</span> required to apply for a job.
 
                                                 </li>
 
                                             </ul>
 
                                             <p className="text-emerald-600 font-medium">
-                                                Bonus: Every month, you get 100 Zens free.</p>
+                                                Bonus: Every month, you get 100 points free.</p>
 
                                         </TooltipContent>
 
@@ -151,7 +151,7 @@ const ZensCard = ({ remainingPoints = 0 }) => {
 
                             <p className={`text-sm ${colors.subtitle}`}>
 
-                                {remainingPoints} zens available for your account.
+                                {remainingPoints} points available for your account.
 
                             </p>
 
@@ -167,7 +167,7 @@ const ZensCard = ({ remainingPoints = 0 }) => {
 
                             {remainingPoints}{" "}
 
-                            <span className="text-sm font-medium opacity-75">Zens</span>
+                            <span className="text-sm font-medium opacity-75">points</span>
 
                         </div>
 
