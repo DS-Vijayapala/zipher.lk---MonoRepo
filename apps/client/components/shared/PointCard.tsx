@@ -1,3 +1,5 @@
+"use client";
+
 import { AlertTriangle, Leaf, Info } from "lucide-react";
 import {
     Tooltip,
@@ -103,16 +105,16 @@ const ZensCard = ({ remainingPoints = 0 }) => {
 
                                         <TooltipTrigger asChild>
 
-                                            <Info className="w-5 h-5 text-gray-500 cursor-pointer
-                                             hover:text-gray-700" />
+                                            <Info className={`w-5 h-5 text-gray-500 cursor-pointer
+                                             hover:text-gray-700`} />
 
                                         </TooltipTrigger>
 
                                         <TooltipContent
                                             side="top"
-                                            className="max-w-xs text-sm leading-relaxed bg-white
+                                            className={`max-w-xs text-sm leading-relaxed bg-white
                                              text-gray-700 border border-gray-200 rounded-lg
-                                              shadow-md p-3 mb-2 !after:hidden"
+                                              shadow-md p-3 mb-2 !after:hidden`}
                                         >
 
                                             <p className="font-semibold text-emerald-700 mb-1">What are Points?</p>
