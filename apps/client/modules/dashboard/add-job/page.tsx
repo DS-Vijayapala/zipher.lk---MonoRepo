@@ -24,9 +24,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { log } from "console";
 
-/* -------------------------
-   Types
-------------------------- */
+// Types
+
 type JobFormData = {
     title: string;
     category: string;
@@ -39,10 +38,10 @@ type JobFormData = {
     qualifications: string[];
 };
 
-/* -------------------------
-   Image choices (public folder)
-   Place files under apps/client/public/job-images/
-------------------------- */
+
+//  Image choices (public folder)
+//  Place files under apps/client/public/job-images/
+
 const IMAGE_CHOICES = ["img1.png"];
 
 // Helpers
@@ -142,37 +141,65 @@ export default function AddJob() {
     };
 
     return (
+
         <div className="max-w-4xl mx-auto px-4 py-8">
+
             <Title title="Add New Job" subTitle="Post a new job listing and attract top talent." />
 
             <div className="mt-6">
+
                 <ZensCard remainingPoints={userPoints} />
+
                 {isError && <p className="text-red-600 text-sm mt-2">Error loading dashboard data.</p>}
+
             </div>
 
-            {/* FORM */}
+            {/* ===================== FORM START ===================== */}
+
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className={`mt-6 bg-white rounded-2xl border p-6 shadow-sm ${!canPostJob ? "opacity-60 pointer-events-none" : ""
-                    }`}
-            >
-                {/* Job Title */}
+                className={`mt-6 bg-white rounded-2xl border p-6 shadow-sm 
+                    ${!canPostJob ? "opacity-60 pointer-events-none" : ""}`}>
+
+                {/* Hidden inputs for ShadCN selects → required for RHF validation */}
+
+                <input type="hidden" {...register("category", { required: "Select a category" })} />
+
+                <input type="hidden" {...register("location", { required: "Select a location" })} />
+
+                <input type="hidden" {...register("level", { required: "Select experience level" })} />
+
+                {/* ---------------- Job Title ---------------- */}
+
                 <div className="mb-5">
-                    <label className="block text-sm font-semibold text-green-800 mb-2">Job Title *</label>
+
+                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                        Job Title *
+                    </label>
+
                     <Input
                         {...register("title", {
                             required: "Job title is required",
                             minLength: { value: 3, message: "Minimum 3 characters required" },
-                            maxLength: { value: 120, message: "Maximum 120 characters allowed" },
+                            maxLength: { value: 50, message: "Maximum 50 characters allowed" },
+                            pattern: {
+                                value: /^[a-zA-Z0-9.,;:'"()!?+\-@#&*/\s]{3,}$/i,
+                                message: "Invalid or unsafe characters detected.",
+                            },
                         })}
-                        placeholder="e.g., Senior React Developer"
+                        placeholder="Senior React Developer"
                     />
-                    {errors.title && <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>}
+
+                    {errors.title && (
+                        <p className="text-xs text-red-600 mt-1">{errors.title.message}</p>
+                    )}
+
                 </div>
 
+                {/* ---------------- Description ---------------- */}
 
-                {/* Description (Textarea, max 150 words) */}
                 <div className="mb-5">
+
                     <label className="block text-sm font-semibold text-green-800 mb-2">
                         Job Description *
                     </label>
@@ -181,85 +208,127 @@ export default function AddJob() {
                         {...register("description", {
                             required: "Job description is required",
                             validate: (val: string) =>
-                                (val && countWords(val) <= 150) || "Description cannot exceed 150 words",
+                                countWords(val) <= 150 || "Description cannot exceed 150 words",
+                            pattern: {
+                                value: /^[a-zA-Z0-9.,;:'"()!?+\-@#&*/\s]+$/i,
+                                message: "Invalid characters detected.",
+                            },
                         })}
-                        className="w-full border rounded-xl p-3 min-h-40 outline-none focus:ring-2 focus:ring-green-600 resize-none bg-white"
+                        className="w-full border rounded-xl p-3 min-h-40 bg-white outline-none
+                            focus:ring-2 focus:ring-green-600 resize-none"
                         placeholder="Provide a detailed job description (max 150 words)..."
                     />
 
-                    {/* Word Count + Error (Aligned in One Row) */}
+                    {/* Word counter + error inline */}
+
                     <div className="flex justify-between items-center mt-2">
 
-                        {/* Left: Error message */}
                         <div>
                             {errors.description && (
-                                <p className="text-xs text-red-600">{errors.description.message}</p>
+                                <p className="text-xs text-red-600">
+                                    {errors.description.message}
+                                </p>
                             )}
                         </div>
 
-                        {/* Right: Word Count */}
                         <p
                             className={`text-xs ${countWords(watch("description") ?? "") > 150
                                 ? "text-red-600"
                                 : "text-slate-500"
-                                }`}
-                        >
+                                }`}>
+
                             {countWords(watch("description") ?? "")} / 150 words
+
                         </p>
+
                     </div>
 
                 </div>
 
+                {/* ---------------- 2×2 Grid: Category / Location / Level / Salary ---------------- */}
 
-                {/* Balanced 2×2 Grid for Category, Location, Level, Salary */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                    {/* Job Category */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold text-green-800 mb-2">Job Category *</label>
 
-                        <Select onValueChange={(v) => setValue("category", v, { shouldValidate: true })}>
+                    {/* Job Category */}
+
+                    <div>
+
+                        <label className="block text-sm font-semibold text-green-800 mb-2">
+                            Job Category *
+                        </label>
+
+                        <Select
+                            onValueChange={(v) => setValue("category", v, { shouldValidate: true })}
+                        >
+
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
 
                             <SelectContent>
+
                                 {jobCategories.map((c) => (
                                     <SelectItem key={c} value={c}>
                                         {c}
                                     </SelectItem>
                                 ))}
+
                             </SelectContent>
+
                         </Select>
 
-                        {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category.message}</p>}
+                        {errors.category && (
+                            <p className="text-xs text-red-600 mt-1">{errors.category.message}</p>
+                        )}
+
                     </div>
 
                     {/* Job Location */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold text-green-800 mb-2">Job Location *</label>
 
-                        <Select onValueChange={(v) => setValue("location", v, { shouldValidate: true })}>
+                    <div>
+
+                        <label className="block text-sm font-semibold text-green-800 mb-2">
+                            Job Location *
+                        </label>
+
+                        <Select
+                            onValueChange={(v) => setValue("location", v, { shouldValidate: true })}
+                        >
+
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select location" />
                             </SelectTrigger>
 
                             <SelectContent>
+
                                 {jobLocations.map((l) => (
                                     <SelectItem key={l} value={l}>
                                         {l}
                                     </SelectItem>
                                 ))}
+
                             </SelectContent>
+
                         </Select>
 
-                        {errors.location && <p className="text-xs text-red-600 mt-1">{errors.location.message}</p>}
+                        {errors.location && (
+                            <p className="text-xs text-red-600 mt-1">{errors.location.message}</p>
+                        )}
+
                     </div>
 
                     {/* Experience Level */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold text-green-800 mb-2">Experience Level *</label>
 
-                        <Select onValueChange={(v) => setValue("level", v, { shouldValidate: true })}>
+                    <div>
+
+                        <label className="block text-sm font-semibold text-green-800 mb-2">
+                            Experience Level *
+                        </label>
+
+                        <Select
+                            onValueChange={(v) => setValue("level", v, { shouldValidate: true })}
+                        >
+
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select level" />
                             </SelectTrigger>
@@ -272,63 +341,119 @@ export default function AddJob() {
                                 <SelectItem value="lead">Lead</SelectItem>
                                 <SelectItem value="principal">Principal</SelectItem>
                             </SelectContent>
+
                         </Select>
 
-                        {errors.level && <p className="text-xs text-red-600 mt-1">{errors.level.message}</p>}
+                        {errors.level && (
+                            <p className="text-xs text-red-600 mt-1">{errors.level.message}</p>
+                        )}
+
                     </div>
 
                     {/* Salary */}
-                    <div className="w-full">
-                        <label className="block text-sm font-semibold text-green-800 mb-2">Expected Salary (LKR) *</label>
+
+                    <div>
+
+                        <label className="block text-sm font-semibold text-green-800 mb-2">
+                            Salary (LKR) *
+                        </label>
 
                         <Input
-                            min={0}
                             type="number"
+                            min={0}
                             placeholder="e.g., 150000"
                             {...register("salary", {
                                 required: "Expected salary is required",
                                 min: { value: 0, message: "Salary cannot be negative" },
+                                validate: (val) =>
+                                    /^[0-9]{1,9}$/i.test(val) || "Invalid salary format",
                             })}
                             className="w-full"
                         />
 
-                        {errors.salary && <p className="text-xs text-red-600 mt-1">{errors.salary.message}</p>}
+                        {errors.salary && (
+                            <p className="text-xs text-red-600 mt-1">{errors.salary.message}</p>
+                        )}
+
                     </div>
+
                 </div>
 
-                {/* Job Requirements (chips) */}
+                {/* ---------------- Requirements ---------------- */}
+
                 <div className="mb-5">
-                    <label className="block text-sm font-semibold text-green-800 mb-2">Job Requirements *</label>
+
+                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                        Job Requirements *
+                    </label>
 
                     <Controller
                         control={control}
                         name="requirements"
-                        rules={{ validate: (v) => (Array.isArray(v) && v.length > 0) || "Add at least one requirement" }}
-                        render={({ field }) => <ChipInput value={field.value || []} onChange={field.onChange} placeholder="Type a requirement and press Enter" />}
+                        rules={{
+                            validate: (v) =>
+                                (Array.isArray(v) && v.length > 0) || "Add at least one requirement",
+                        }}
+                        render={({ field }) => (
+                            <ChipInput
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                placeholder="Type a requirement and press Enter"
+                            />
+                        )}
                     />
 
-                    {errors.requirements && <p className="text-xs text-red-600 mt-1">{(errors.requirements as any).message}</p>}
+                    {errors.requirements && (
+                        <p className="text-xs text-red-600 mt-1">
+                            {errors.requirements.message as string}
+                        </p>
+                    )}
+
                 </div>
 
-                {/* Education Qualifications (chips) */}
+                {/* ---------------- Qualifications ---------------- */}
+
                 <div className="mb-5">
-                    <label className="block text-sm font-semibold text-green-800 mb-2">Education Qualifications *</label>
+
+                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                        Education Qualifications *
+                    </label>
 
                     <Controller
                         control={control}
                         name="qualifications"
-                        rules={{ validate: (v) => (Array.isArray(v) && v.length > 0) || "Add at least one qualification" }}
-                        render={({ field }) => <ChipInput value={field.value || []} onChange={field.onChange} placeholder="Type a qualification and press Enter" />}
+                        rules={{
+                            validate: (v) =>
+                                (Array.isArray(v) && v.length > 0) ||
+                                "Add at least one qualification",
+                        }}
+                        render={({ field }) => (
+                            <ChipInput
+                                value={field.value || []}
+                                onChange={field.onChange}
+                                placeholder="Type a qualification and press Enter"
+                            />
+                        )}
                     />
 
-                    {errors.qualifications && <p className="text-xs text-red-600 mt-1">{(errors.qualifications as any).message}</p>}
+                    {errors.qualifications && (
+                        <p className="text-xs text-red-600 mt-1">
+                            {errors.qualifications.message as string}
+                        </p>
+                    )}
+
                 </div>
 
-                {/* Banner Image Selector */}
+                {/* ---------------- Banner Image Selector ---------------- */}
+
                 <div className="mb-6">
-                    <label className="block text-sm font-semibold text-green-800 mb-2">Choose a banner image *</label>
+
+                    <label className="block text-sm font-semibold text-green-800 mb-2">
+                        Choose a banner image *
+                    </label>
 
                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+
                         {IMAGE_CHOICES.map((img) => {
                             const fullPath = `/job-images/${img}`;
                             const selected = selectedImage === img;
@@ -338,27 +463,38 @@ export default function AddJob() {
                                     key={img}
                                     type="button"
                                     onClick={() => setValue("bannerImage", img, { shouldValidate: true })}
-                                    whileTap={{ scale: 0.97 }}
-                                    className={`relative mt-1 rounded-lg overflow-hidden border p-0 ${selected ? "ring-2 ring-offset-2 ring-green-600" : "border-slate-200"
+                                    whileTap={{ scale: 0.96 }}
+                                    className={`relative mt-1 rounded-lg overflow-hidden border p-0 ${selected
+                                        ? "ring-2 ring-offset-2 ring-green-600"
+                                        : "border-slate-200"
                                         }`}
-                                    aria-pressed={selected}
                                 >
-                                    <div className="w-full h-20 sm:h-24 relative object-cover">
-                                        <Image src={fullPath} alt={img} fill style={{ objectFit: "cover" }} />
+                                    <div className="w-full h-20 sm:h-24 relative">
+                                        <Image src={fullPath} alt={img} fill className="object-cover" />
                                     </div>
                                 </motion.button>
                             );
                         })}
+
                     </div>
 
-                    {errors.bannerImage && <p className="text-xs text-red-600 mt-1">{(errors.bannerImage as any).message}</p>}
+                    {errors.bannerImage && (
+                        <p className="text-xs text-red-600 mt-1">
+                            {errors.bannerImage as any}
+                        </p>
+                    )}
 
-                    <p className="text-xs text-slate-500 mt-2">These are predefined images for now. Users cannot upload yet.</p>
                 </div>
 
-                {/* Submit Buttons */}
+                {/* ---------------- Buttons ---------------- */}
+
                 <div className="flex items-center gap-4 mt-6">
-                    <Button type="submit" disabled={isSubmitting || mutation.isPending || !canPostJob} className="px-6 py-2 rounded-xl">
+
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting || mutation.isPending || !canPostJob || Object.keys(errors).length > 0}
+                        className="px-6 py-2 rounded-xl cursor-pointer">
+
                         {mutation.isPending ? (
                             <span className="flex items-center gap-2">
                                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -369,13 +505,23 @@ export default function AddJob() {
                         ) : (
                             `Publish Job (-${JOB_COST} zens)`
                         )}
+
                     </Button>
 
-                    <button type="button" onClick={() => reset()} className="px-4 py-2 rounded-xl border">
+                    <button
+                        type="button"
+                        onClick={() => reset()}
+                        className="px-4 py-2 rounded-xl border cursor-pointer bg-green-100 text-green-800">
+
                         Reset
                     </button>
+
                 </div>
+
             </form>
+
         </div>
+
     );
+
 }
