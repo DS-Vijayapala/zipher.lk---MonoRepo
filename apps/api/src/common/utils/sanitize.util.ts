@@ -1,6 +1,6 @@
 // sanitize.util.ts
 
-export const SAFE_TEXT_REGEX = /^[a-zA-Z0-9\u00C0-\u024F0-9\s.,;:'"()!?+\-@#&*/]+$/u;
+export const SAFE_TEXT_REGEX = /^[\p{L}\p{N}\p{M}\p{Pd}\p{Pc}\p{Zs}.,;:'’"()!?+\-@#&*/]+$/u;
 
 // strip HTML tags + collapse whitespace
 

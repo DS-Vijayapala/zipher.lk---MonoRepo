@@ -80,7 +80,6 @@ async function main() {
                     category,
                     level,
                     salary,
-                    date: dateInt,
                     visible,
                     userID: u.id,
                 },

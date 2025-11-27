@@ -1,62 +1,55 @@
-import { Transform } from "class-transformer";
-import {
-    IsString, IsNotEmpty, MaxLength, MinLength, IsOptional, IsArray,
-    ArrayMinSize, ArrayMaxSize, IsNumberString, Matches, IsNumber, IsPositive
-} from "class-validator";
-import { sanitizeText } from "../../common/utils/sanitize.util";
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from "class-validator";
+import { Sanitize } from "../decorators/dto/sanitize-text.decorator";
+import { IsSafeText } from "../decorators/dto/safe-text.decorator";
+import { MaxWords } from "../decorators/dto/word-count.validator";
+import { IsValidTextArray } from "../decorators/dto/validated-array.decorator";
 
-const SAFE_REGEX = /^[a-zA-Z0-9\u00C0-\u024F0-9\s.,;:'"()!?+\-@#&*/]+$/u;
+export const SAFE_REGEX = /^[\p{L}\p{N}\p{M}\p{Pd}\p{Pc}\p{Zs}.,;:'’"()!?+\-@#&*/]+$/u;
 
 export class CreateJobDto {
-
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
     @IsString()
     @IsNotEmpty()
-    @MinLength(3)
-    @MaxLength(120)
-    @Matches(SAFE_REGEX, { message: "Invalid characters in title" })
+    @IsSafeText({ message: "Title contains invalid characters" })
     title: string;
 
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
     @IsString()
     @IsNotEmpty()
-    @MaxLength(4000) // allow long but we also restrict words below
-    @Matches(SAFE_REGEX, { message: "Invalid characters in description" })
+    @MaxWords(200)
+    @IsSafeText({ message: "Description contains invalid characters" })
     description: string;
 
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
     @IsString()
     @IsNotEmpty()
-    @MaxLength(200)
-    @Matches(SAFE_REGEX, { message: "Invalid characters in location" })
+    @IsSafeText({ message: "Location contains invalid characters" })
     location: string;
 
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
     @IsString()
     @IsNotEmpty()
+    @IsSafeText({ message: "Category contains invalid characters" })
     category: string;
 
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
     @IsString()
     @IsNotEmpty()
+    @IsSafeText({ message: "Level contains invalid characters" })
     level: string;
 
     @IsOptional()
-    // salary arrives as string from client; transform on service
-    @Matches(/^[0-9]{1,12}$/, { message: "Invalid salary format" })
-    salary?: string;
+    @IsNumber()
+    salary?: number;
 
-    @Transform(({ value }) => sanitizeText(value))
+    @Sanitize()
+    @IsString()
     @IsOptional()
     bannerImage?: string;
 
-    @IsArray()
-    @ArrayMinSize(1)
-    @ArrayMaxSize(20)
+    @IsValidTextArray(20)
     requirements: string[];
 
-    @IsArray()
-    @ArrayMinSize(1)
-    @ArrayMaxSize(20)
+    @IsValidTextArray(20)
     qualifications: string[];
 }

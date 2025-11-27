@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,6 +6,7 @@ import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
 import { buildJobWhereQuery, buildSortOrder } from './helpers/job-filters.helper';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { RedisService } from 'src/common/redis/redis.service';
+import { isSafeText, sanitizeText } from 'src/common/utils/sanitize.util';
 
 @Injectable()
 export class JobsService {
@@ -74,7 +75,6 @@ export class JobsService {
             jobType: true,
             level: true,
             salary: true,
-            date: true,
             createdAt: true,
             updatedAt: true,
             user: {
@@ -233,6 +233,45 @@ export class JobsService {
 
   }
 
+
+  async postJob(userId: string, dto: CreateJobDto) {
+
+    if (!userId) throw new ForbiddenException("Authentication required");
+
+    const JOB_COST = 10;
+
+    const availablePoints = await this.getAvailableUserPoints(userId);
+
+    if (availablePoints < JOB_COST) {
+      throw new ForbiddenException("Not enough points to post job");
+    }
+
+    const salaryNumber = dto.salary ? Number(dto.salary) : 0;
+
+    const { job } = await this.prismaService.$transaction(async (tx) => {
+      const job = await tx.job.create({
+        data: {
+          ...dto,
+          salary: salaryNumber,
+          user: { connect: { id: userId } },
+        },
+      });
+
+      await this.deductUserPoints(userId, JOB_COST);
+
+      return { job };
+
+    });
+
+    return {
+      success: true,
+      message: "Job posted successfully",
+      jobId: job.id,
+    };
+
+  }
+
+
   // ---------------------------- HELPER METHODS ----------------------------
 
 
@@ -254,6 +293,68 @@ export class JobsService {
   private buildJobDetailKey(jobId: string, userId: string | null): string {
     return `job:detail:${jobId}:${userId ?? "guest"}`;
   }
+
+  // Get available total user points
+
+  private async getAvailableUserPoints(userId: string) {
+
+    const record = await this.prismaService.point.findUnique({
+      where: { userId },
+      select: { points: true, default_point: true },
+    });
+
+    return (record?.points ?? 0) + (record?.default_point ?? 0);
+
+  }
+
+  // Deduct points from user
+
+  private async deductUserPoints(userId: string, cost: number) {
+
+    const tx = this.prismaService;
+
+    const record = await tx.point.findUnique({
+      where: { userId },
+    });
+
+    // CASE 1 — No record exists → create default
+    if (!record) {
+      const remainingDefault = 100 - cost;
+
+      await tx.point.create({
+        data: {
+          userId,
+          points: 0,
+          default_point: remainingDefault >= 0 ? remainingDefault : 0,
+        },
+      });
+
+      return;
+    }
+
+    // CASE 2 — Enough points
+    if (record.points >= cost) {
+      await tx.point.update({
+        where: { userId },
+        data: { points: { decrement: cost } },
+      });
+      return;
+    }
+
+    // CASE 3 — Not enough points
+    const neededFromDefault = cost - record.points;
+
+    await tx.point.update({
+      where: { userId },
+      data: {
+        points: 0,
+        default_point: { decrement: neededFromDefault },
+      },
+
+    });
+
+  }
+
 
 
 
