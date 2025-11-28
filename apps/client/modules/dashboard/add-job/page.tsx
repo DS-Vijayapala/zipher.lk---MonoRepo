@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axiosInstence";
 import { toast } from "react-hot-toast";
 import { useDashboardData } from "@/modules/dashboard/dashboard-data/hooks/useDashBoardData";
@@ -22,7 +22,7 @@ import { jobCategories, jobLocations } from "@/modules/jobs/all-jobs/libs/consta
 import ChipInput from "./components/form/ChipInput";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { log } from "console";
+import { useRouter } from "next/navigation";
 
 // Types
 
@@ -31,7 +31,7 @@ type JobFormData = {
     category: string;
     location: string;
     level: string;
-    salary: string;
+    salary: number;
     description: string;
     bannerImage: string;
     requirements: string[];
@@ -58,6 +58,10 @@ const countWords = (text = "") =>
 
 export default function AddJob() {
 
+    const router = useRouter();
+
+    const queryClient = useQueryClient();
+
     const JOB_COST = 10;
 
     const { data: dashboardData, isError, refetch: refetchDashboard } = useDashboardData();
@@ -80,7 +84,7 @@ export default function AddJob() {
             category: "",
             location: "",
             level: "",
-            salary: "",
+            salary: 0,
             description: "",
             bannerImage: IMAGE_CHOICES[0],
             requirements: [],
@@ -92,12 +96,14 @@ export default function AddJob() {
 
     const mutation = useMutation({
         mutationFn: async (payload: JobFormData) => {
-            const { data } = await axiosInstance.post("/api/v2/users/post-job", payload);
+            const { data } = await axiosInstance.post("/jobs/post-job", payload);
             return data;
         },
         onSuccess: async (data) => {
             if (data?.success) {
                 toast.success("Job posted successfully");
+                queryClient.invalidateQueries({ queryKey: ["jobs"] });
+                router.push("/dashboard");
                 await refetchDashboard?.();
                 reset();
             } else {
@@ -115,29 +121,14 @@ export default function AddJob() {
 
         console.log("Form submitted:", form);
 
-        // // final validation: ensure arrays have items
-        // if (!form.requirements || form.requirements.length === 0) {
-        //     toast.error("Add at least one job requirement.");
-        //     return;
-        // }
-        // if (!form.qualifications || form.qualifications.length === 0) {
-        //     toast.error("Add at least one education qualification.");
-        //     return;
-        // }
+        // normalize salary
+        const payload: JobFormData = {
+            ...form,
+            salary: Number(form.salary || 0)
+        };
 
-        // // ensure description word limit (defensive)
-        // if (countWords(form.description) > 500) {
-        //     toast.error("Description cannot exceed 500 words.");
-        //     return;
-        // }
+        mutation.mutate(payload);
 
-        // // normalize salary
-        // const payload: JobFormData = {
-        //     ...form,
-        //     salary: form.salary ? String(Number(form.salary)) : "",
-        // };
-
-        // mutation.mutate(payload);
     };
 
     return (
@@ -360,13 +351,19 @@ export default function AddJob() {
 
                         <Input
                             type="number"
+                            inputMode="numeric"
                             min={0}
                             placeholder="e.g., 150000"
                             {...register("salary", {
                                 required: "Expected salary is required",
-                                min: { value: 0, message: "Salary cannot be negative" },
-                                validate: (val) =>
-                                    /^[0-9]{1,9}$/i.test(val) || "Invalid salary format",
+                                validate: (val) => {
+                                    if (!val) return "Salary is required";
+                                    const num = Number(val);
+                                    if (isNaN(num)) return "Salary must be a valid number";
+                                    if (num < 0) return "Salary cannot be negative";
+                                    if (!/^\d{1,12}$/.test(String(num))) return "Invalid salary format";
+                                    return true;
+                                },
                             })}
                             className="w-full"
                         />

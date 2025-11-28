@@ -22,7 +22,7 @@ export default function ChipInput({
 
     // Allows: Letters, numbers, spaces, basic punctuation.
 
-    const SAFE_REGEX = /^[a-zA-Z0-9.,;:'"()!?+\-@#&*/\s]+$/;
+    const SAFE_REGEX = /^[\p{L}\p{N}\p{M}\p{Pd}\p{Pc}\p{Zs}.,;:'’"()!?+\-@#&*/]+$/u;
 
     const sanitizeInput = (text: string) => {
         const trimmed = text.trim();
