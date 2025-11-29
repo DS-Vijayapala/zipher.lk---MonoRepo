@@ -11,6 +11,8 @@ import { RedisModule } from './common/redis/redis.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { UploadModule } from './common/upload/upload.module';
+import { SendEmailModule } from './common/send-email/send-email.module';
+import mailConfig from './common/send-email/config/email-config';
 
 @Module({
   imports:
@@ -33,6 +35,11 @@ import { UploadModule } from './common/upload/upload.module';
         ],
       }),
       UploadModule,
+      ConfigModule.forRoot({
+        load: [mailConfig],
+        isGlobal: true,
+      }),
+      SendEmailModule,
     ],
   controllers: [AppController],
   providers: [

@@ -9,10 +9,14 @@ import type { Response } from 'express';
 import { Public } from './decoraters/public.decoraters';
 import { Roles } from './decoraters/roles.decoraters';
 import { RolesGuard } from './guards/roles/roles.guard';
+import { SendEmailService } from 'src/common/send-email/send-email.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly mailer: SendEmailService
+  ) { }
 
   @Public()
   @Post('signup')
@@ -63,6 +67,21 @@ export class AuthController {
   @Post('signout')
   async signOut(@Req() req) {
     return this.authService.signOut(req.user.id);
+  }
+
+  @Public()
+  @Post('send-otp')
+  async sendOtpEndpoint(@Body() body: { email: string }) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
+    await this.mailer.sendOtpEmail(
+      body.email,
+      '',                   // senderEmail override (optional)
+      'Zipher Team',        // senderName
+      otp,
+      'otp-email.ejs',
+      10,                   // expire in 10 minutes
+    );
+    return { ok: true, otpSent: true }; // don't return OTP in production; for dev only
   }
 
 

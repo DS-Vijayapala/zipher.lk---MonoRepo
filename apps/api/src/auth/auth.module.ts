@@ -16,6 +16,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RolesGuard } from './guards/roles/roles.guard';
 import { RedisModule } from 'src/common/redis/redis.module';
+import { SendEmailService } from 'src/common/send-email/send-email.service';
+import { SendEmailModule } from 'src/common/send-email/send-email.module';
 
 @Module({
   imports: [JwtModule.registerAsync(
@@ -24,6 +26,7 @@ import { RedisModule } from 'src/common/redis/redis.module';
   ConfigModule.forFeature(refreshConfig),
   ConfigModule.forFeature(googleOauthConfig),
     RedisModule,
+    SendEmailModule,
   ],
   controllers: [AuthController],
   providers: [
