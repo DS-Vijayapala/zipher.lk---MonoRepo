@@ -1,14 +1,11 @@
 import { BadRequestException, Body, Inject, Injectable, Post, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/modules/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { AuthJwtPayload } from './types/auth-jwtpayload';
 import { JwtService } from '@nestjs/jwt';
-import id from 'zod/v4/locales/id.js';
 import refreshConfig from './config/refresh.config';
 import type { ConfigType } from "@nestjs/config";
-import { error } from 'console';
 
 @Injectable()
 export class AuthService {

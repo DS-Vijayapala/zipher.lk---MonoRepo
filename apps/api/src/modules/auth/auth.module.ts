@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserService } from 'src/user/user.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import jwtConfig from './config/jwt-config';
@@ -18,6 +16,8 @@ import { RolesGuard } from './guards/roles/roles.guard';
 import { RedisModule } from 'src/common/redis/redis.module';
 import { SendEmailService } from 'src/common/send-email/send-email.service';
 import { SendEmailModule } from 'src/common/send-email/send-email.module';
+import { PrismaService } from 'src/common/prisma/prisma.service';
+import { UserService } from '../user/user.service';
 
 @Module({
   imports: [JwtModule.registerAsync(

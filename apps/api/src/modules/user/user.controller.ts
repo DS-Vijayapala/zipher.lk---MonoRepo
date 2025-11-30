@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { Roles } from 'src/auth/decoraters/roles.decoraters';
+import { Roles } from 'src/modules/auth/decoraters/roles.decoraters';
 
 @Controller('user')
 export class UserController {

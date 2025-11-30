@@ -3,10 +3,10 @@ import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { DEFAULT_PAGE_LIMIT } from './lib/constants';
-import { Public } from 'src/auth/decoraters/public.decoraters';
+import { Public } from 'src/modules/auth/decoraters/public.decoraters';
 import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
-import { Roles } from 'src/auth/decoraters/roles.decoraters';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { Roles } from 'src/modules/auth/decoraters/roles.decoraters';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth/jwt-auth.guard';
 
 @Controller('jobs')
 export class JobsController {
