@@ -64,51 +64,23 @@ export class UserService {
       const cacheKey = `dashboardData:${userId}`;
 
       // Try to read from Redis cache first
-
       const cachedData = await this.redis.get(cacheKey);
 
       if (cachedData) {
 
         log("Send Dashboard data from cache:", cacheKey);
-
-
         return {
           success: true,
           data: cachedData
         };
       }
 
-      // If no cache → fetch fresh data from DB in parallel
+      // If no cache → fetch fresh data from DB
+      const appliedJobCount = await this.countTotalApplications(userId);
+      const PendingJobCount = await this.countApplicationsByStatus(userId, "Pending");
+      const acceptedJobCount = await this.countApplicationsByStatus(userId, "Accepted");
+      const userPoints = await this.getUserPoints(userId);
 
-      const [
-        appliedJobCount,
-        PendingJobCount,
-        acceptedJobCount,
-        userPoints
-      ] = await Promise.all([
-
-        this.prisma.jobApplication.count({
-          where: { userId },
-        }),
-
-        this.prisma.jobApplication.count({
-          where: {
-            userId,
-            status: "Pending",
-          },
-        }),
-
-        this.prisma.jobApplication.count({
-          where: {
-            userId,
-            status: "Accepted",
-          },
-        }),
-
-        this.prisma.point.findUnique({
-          where: { userId },
-        })
-      ]);
 
       const remainingPoints =
         (userPoints?.points ?? 0) + (userPoints?.default_point ?? 0) || 0;
@@ -134,7 +106,31 @@ export class UserService {
     }
   }
 
+  // Count all applications for user
+  async countTotalApplications(userId: string) {
+    return this.prisma.jobApplication.count({
+      where: { userId },
+    });
+  }
 
+  // Count applications by status
+  async countApplicationsByStatus(
+    userId: string,
+    status: "Pending" | "Accepted" | "Rejected"
+  ) {
+    return this.prisma.jobApplication.count({
+      where: { userId, status },
+    });
+  }
 
+  // Get user points
+  async getUserPoints(userId: string) {
+    return this.prisma.point.findUnique({
+      where: { userId },
+      select: { points: true, default_point: true }
+    });
+  }
 
 }
+
+
