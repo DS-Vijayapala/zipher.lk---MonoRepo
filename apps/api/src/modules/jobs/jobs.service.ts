@@ -236,6 +236,9 @@ export class JobsService {
 
   async postJob(userId: string, dto: CreateJobDto) {
 
+
+    const dashboardCacheKey = `dashboardData:${userId}`;
+
     if (!userId) throw new ForbiddenException("Authentication required");
 
     const JOB_COST = 10;
@@ -258,6 +261,10 @@ export class JobsService {
       });
 
       await this.deductUserPoints(userId, JOB_COST);
+
+      await this.redisService.delPattern("jobs:list:*");
+
+      await this.redisService.del(dashboardCacheKey);
 
       return { job };
 
