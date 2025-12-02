@@ -26,6 +26,8 @@ import JobCard from "@/components/shared/JobCard";
 import Loading from "@/components/shared/Loading";
 import { SessionPayload } from "@/lib/session";
 import { useUser } from "@/hooks/useUser";
+import { Toggle } from "@/components/ui/toggle";
+import MotivationalHeader from "./components/MotivationalHeader";
 
 interface Props {
     id: string;
@@ -127,17 +129,10 @@ export default function JobDetailsAndApply({ id }: Props) {
 
                     <div className="relative">
 
-                        {/* COVER IMAGE */}
+                        {/* COVER Message */}
 
-                        <div className="h-40 md:h-48 w-full bg-green-50">
-
-                            <Image
-                                src={job.coverImage || "/job-header-placeholder.svg"}
-                                alt="Job Header"
-                                width={800}
-                                height={400}
-                                className="object-cover w-full h-full"
-                            />
+                        <div>
+                            <MotivationalHeader />
                         </div>
 
                         {/* CONTENT */}
@@ -176,16 +171,16 @@ export default function JobDetailsAndApply({ id }: Props) {
                                         <>
 
                                             {/* SAVE JOB ICON */}
-                                            <button
+                                            <Toggle
                                                 className="p-2 rounded-md border hover:bg-green-50 flex items-center justify-center cursor-pointer"
-                                            // onClick={() => addToList.mutate()}
+                                            //  onClick={() => addToList.mutate()}
                                             >
                                                 {isSaved ? (
                                                     <Bookmark className="text-green-600" size={18} />
                                                 ) : (
                                                     <BookmarkPlus className="text-green-400" size={18} />
                                                 )}
-                                            </button>
+                                            </Toggle>
 
                                             <Button
                                                 size="sm"
@@ -218,36 +213,30 @@ export default function JobDetailsAndApply({ id }: Props) {
                             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
 
                                 <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Company</div>
+                                    <div className="text-xs text-green-800">Company</div>
                                     <div className="font-medium">{job.user?.name}</div>
                                 </div>
 
                                 <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Location</div>
+                                    <div className="text-xs  text-green-800">Location</div>
                                     <div className="font-medium">{job.location}</div>
                                 </div>
 
                                 <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Level</div>
+                                    <div className="text-xs  text-green-800">Level</div>
                                     <div className="font-medium">{job.level}</div>
                                 </div>
 
 
                                 <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Job Type</div>
+                                    <div className="text-xs  text-green-800">Job Type</div>
                                     <div className="font-medium">{job.jobType ?? "Full Time"}</div>
                                 </div>
 
                                 <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Salary</div>
-                                    <div className="font-medium">{job.salary ?? "Competitive"}</div>
+                                    <div className="text-xs  text-green-800">Salary</div>
+                                    <div className="font-medium">{job.salary === 0 ? "Competitive" : job.salary}</div>
                                 </div>
-
-                                <div className="p-3 bg-green-50 rounded-md">
-                                    <div className="text-xs text-muted-foreground">Current Applications</div>
-                                    <div className="font-medium">{job.applicationCount ?? "0"}</div>
-                                </div>
-
 
                             </div>
 
@@ -265,15 +254,32 @@ export default function JobDetailsAndApply({ id }: Props) {
 
                         <Card className="mt-4">
                             <CardHeader>
-                                <CardTitle>Job Description</CardTitle>
+                                <CardTitle className="text-green-800">Job Description</CardTitle>
                                 <CardDescription>Read the full role details</CardDescription>
                             </CardHeader>
 
                             <CardContent>
-                                {/* If using Quill HTML later → replace with dangerouslySetInnerHTML */}
-                                <p className="text-sm leading-relaxed whitespace-pre-line">
+
+                                <p className="text-sm leading-relaxed whitespace-pre-line ">
                                     {job.description}
                                 </p>
+
+                                <div>
+                                    <h3 className="text-md font-semibold mt-6 mb-2 text-green-800"> Daily Tasks</h3>
+                                    <p className="text-sm leading-relaxed whitespace-pre-line">
+                                        {job.requirements?.join("\n")}
+                                    </p>
+                                </div>
+
+
+                                <div>
+                                    <h3 className="text-md font-semibold mt-6 mb-2 text-green-800">Requirements</h3>
+                                    <p className="text-sm leading-relaxed whitespace-pre-line">
+                                        {job.qualifications?.join("\n")}
+                                    </p>
+                                </div>
+
+
                             </CardContent>
 
                             <CardFooter className="flex justify-between items-center">
@@ -301,7 +307,7 @@ export default function JobDetailsAndApply({ id }: Props) {
 
                         {/* Make job cards show 1 per row on mobile, 1 per row on MD (no 2 columns) */}
                         <div className="grid grid-cols-1 gap-4 mb-6">
-                            {relatedJobs?.slice(0, 3).map((r: any) => (
+                            {relatedJobs?.slice(0, 2).map((r: any) => (
                                 <JobCard
                                     key={r.id}
                                     job={{

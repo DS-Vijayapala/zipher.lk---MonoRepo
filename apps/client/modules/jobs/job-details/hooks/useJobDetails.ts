@@ -18,6 +18,8 @@ export interface Job {
     coverImage?: string;
     jobType?: string;
     category?: string;
+    requirements?: string[];
+    qualifications?: string[];
     createdAt?: string;
     salary?: number;
     visible?: boolean;
