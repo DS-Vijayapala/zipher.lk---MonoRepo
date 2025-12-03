@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, ClipboardList } from "lucide-react";
 
 interface UserButtonProps {
     userData: {
@@ -92,7 +92,7 @@ const UserButton: React.FC<UserButtonProps> = ({ userData, logout, navigate }) =
 
                 <DropdownMenuItem
                     className="cursor-pointer focus:bg-slate-50 max-sm:hidden max-lg:hidden"
-                    onClick={() => handleNavigate("/owner/dashboard")}
+                    onClick={() => handleNavigate("/dashboard")}
                 >
 
                     <Settings className="h-4 w-4 mr-3" />
@@ -101,7 +101,6 @@ const UserButton: React.FC<UserButtonProps> = ({ userData, logout, navigate }) =
 
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
 
                 {/* Profile */}
                 <DropdownMenuItem
@@ -112,6 +111,19 @@ const UserButton: React.FC<UserButtonProps> = ({ userData, logout, navigate }) =
                     <User className="h-4 w-4 mr-3" />
 
                     <span>Profile</span>
+
+                </DropdownMenuItem>
+
+
+                {/* My Jobs */}
+                <DropdownMenuItem
+                    className="cursor-pointer focus:bg-slate-50 max-sm:hidden max-lg:hidden"
+                    onClick={() => handleNavigate("/dashboard/my-jobs")}
+                >
+
+                    <ClipboardList className="h-4 w-4 mr-3" />
+
+                    <span>My Jobs</span>
 
                 </DropdownMenuItem>
 

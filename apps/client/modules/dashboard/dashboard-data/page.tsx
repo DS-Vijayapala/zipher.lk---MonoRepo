@@ -138,7 +138,7 @@ const DashBoardPage = () => {
                                 title="My Jobs"
                                 description="Track your Applied jobs"
                                 icon={ClipboardList}
-                                onClick={() => router.push("/dashboard/applications")}
+                                onClick={() => router.push("/dashboard/my-jobs")}
                                 isPrimary
                             />
 
