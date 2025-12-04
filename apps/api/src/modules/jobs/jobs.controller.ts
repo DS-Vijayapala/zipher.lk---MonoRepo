@@ -1,16 +1,18 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
-import { JobsService } from './jobs.service';
+import { JobsService } from './providers/jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { UpdateJobDto } from './dto/update-job.dto';
-import { DEFAULT_PAGE_LIMIT } from './lib/constants';
 import { Public } from 'src/modules/auth/decoraters/public.decoraters';
 import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
 import { Roles } from 'src/modules/auth/decoraters/roles.decoraters';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth/jwt-auth.guard';
+import { GetUserJobApplicationsDto } from './dto/get-user-job-applications.dto';
+import { JobApplicationService } from './providers/job-application.service';
 
 @Controller('jobs')
 export class JobsController {
-  constructor(private readonly jobsService: JobsService) { }
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly jobAppService: JobApplicationService,
+  ) { }
 
   @Public()
   @Get('all-jobs')
@@ -39,8 +41,13 @@ export class JobsController {
     return this.jobsService.postJob(userId, createJobDto);
   }
 
+  @Roles('USER')
+  @Get("job-applications")
+  async getMyApplications(@Req() req, @Query() query: GetUserJobApplicationsDto) {
+    const userId = req.user.id;
 
-
+    return this.jobAppService.getUserApplications(userId, query);
+  }
 
 
 }
