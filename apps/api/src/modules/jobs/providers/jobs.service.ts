@@ -301,7 +301,7 @@ export class JobsService {
 
   // Get available total user points
 
-  private async getAvailableUserPoints(userId: string) {
+  public async getAvailableUserPoints(userId: string) {
 
     const record = await this.prismaService.point.findUnique({
       where: { userId },
@@ -314,7 +314,7 @@ export class JobsService {
 
   // Deduct points from user
 
-  private async deductUserPoints(userId: string, cost: number) {
+  public async deductUserPoints(userId: string, cost: number) {
 
     const tx = this.prismaService;
 

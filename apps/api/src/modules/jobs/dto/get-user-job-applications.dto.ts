@@ -26,4 +26,5 @@ export class GetUserJobApplicationsDto extends PartialType(GetAllJobsQueryDto) {
     @Min(1)
     @Max(15, { message: "Limit cannot exceed 15" })
     limit: number = DEFAULT_LIMIT;
+
 }

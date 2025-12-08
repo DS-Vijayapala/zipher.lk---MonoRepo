@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/common/prisma/prisma.service";
 import {
     ApplicationStatusFilter,
@@ -6,6 +6,8 @@ import {
     DEFAULT_PAGE,
     GetUserJobApplicationsDto
 } from "../dto/get-user-job-applications.dto";
+import { JobsService } from "./jobs.service";
+import { RedisService } from "src/common/redis/redis.service";
 
 
 @Injectable()
@@ -13,7 +15,13 @@ export class JobApplicationService {
 
     private readonly logger = new Logger(JobApplicationService.name);
 
-    constructor(private prisma: PrismaService) { }
+    private readonly APPLY_COST = 5;
+
+    constructor(
+        private prisma: PrismaService,
+        private jobService: JobsService,
+        private redisService: RedisService
+    ) { }
 
     async getUserApplications(
         userId: string,
@@ -76,6 +84,74 @@ export class JobApplicationService {
 
         }
 
+    }
+
+    async apply(userId: string, jobId: string) {
+
+        const dashboardCacheKey = `dashboardData:${userId}`;
+
+        // Validate jobId
+        if (!jobId) {
+            throw new BadRequestException("Missing job ID");
+        }
+
+        // Check duplicate application
+        const existing = await this.prisma.jobApplication.findFirst({
+            where: { jobId, userId },
+        });
+
+        if (existing) {
+            throw new BadRequestException("Already applied for this job.");
+        }
+
+        // Validate job
+        const job = await this.prisma.job.findUnique({
+            where: { id: jobId },
+            select: { userID: true },
+        });
+
+        if (!job) {
+            throw new NotFoundException("Job not found");
+        }
+
+        if (job.userID === userId) {
+            throw new ForbiddenException("Cannot apply to your own job post.");
+        }
+
+        // Check user points
+        const available = await this.jobService.getAvailableUserPoints(userId);
+
+        if (available < this.APPLY_COST) {
+            throw new ForbiddenException({
+                message: "Not enough points to apply.",
+                currently_available_point: available,
+            });
+        }
+
+        // Create application
+        await this.prisma.jobApplication.create({
+            data: {
+                jobId,
+                userId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        });
+
+        // Deduct cost
+        await this.jobService.deductUserPoints(userId, this.APPLY_COST);
+
+        const updatedPoints = await this.jobService.getAvailableUserPoints(userId);
+
+        await this.redisService.delPattern("jobs:list:*");
+
+        await this.redisService.del(dashboardCacheKey);
+
+        return {
+            success: true,
+            message: "Applied successfully",
+            currently_available_point: updatedPoints,
+        };
     }
 
 }

@@ -123,7 +123,6 @@ async function main() {
                 userId: applicant.id,
                 jobId: job.id,
                 status,
-                date: applicationDate,
             },
         });
 

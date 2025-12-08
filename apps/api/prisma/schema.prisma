@@ -73,7 +73,6 @@ model JobApplication {
   userId    String            @db.ObjectId
   jobId     String            @db.ObjectId
   status    ApplicationStatus @default(Pending)
-  date      String
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
@@ -89,4 +88,7 @@ model Point {
   last_reset    DateTime @default(now())
 
   user User @relation("UserPoints", fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -11,7 +11,7 @@ import { JobApplicationService } from './providers/job-application.service';
 export class JobsController {
   constructor(
     private readonly jobsService: JobsService,
-    private readonly jobAppService: JobApplicationService,
+    private readonly jobApplicationService: JobApplicationService,
   ) { }
 
   @Public()
@@ -46,7 +46,18 @@ export class JobsController {
   async getMyApplications(@Req() req, @Query() query: GetUserJobApplicationsDto) {
     const userId = req.user.id;
 
-    return this.jobAppService.getUserApplications(userId, query);
+    return this.jobApplicationService.getUserApplications(userId, query);
+  }
+
+
+  @Roles('USER')
+  @Post("apply")
+  async applyJobApplication(@Req() req, @Query() query: { jobId: string }) {
+
+    const userId = req.user.id;
+
+    return this.jobApplicationService.apply(userId, query.jobId);
+
   }
 
 
