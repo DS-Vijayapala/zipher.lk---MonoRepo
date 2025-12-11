@@ -3,9 +3,10 @@
 import React from "react";
 import toast from "react-hot-toast";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Heart, MapPin, Bookmark, User, BookmarkPlus, Star, CheckCircle } from "lucide-react";
+import { AxiosError } from "axios";
 
 import {
     Card,
@@ -28,6 +29,7 @@ import { SessionPayload } from "@/lib/session";
 import { useUser } from "@/hooks/useUser";
 import { Toggle } from "@/components/ui/toggle";
 import MotivationalHeader from "./components/MotivationalHeader";
+import { he } from "date-fns/locale";
 
 interface Props {
     id: string;
@@ -50,68 +52,37 @@ export default function JobDetailsAndApply({ id }: Props) {
     // fetch job details
     const { data, isLoading, isError } = useJobDetails(id);
 
+
+    const applyforJob = useMutation({
+        mutationFn: async () => {
+            const response = await axiosInstance.post(`/jobs/apply?jobId=${id}`);
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success("Applied successfully!");
+            qc.invalidateQueries({ queryKey: ["job-details", id] });
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error?.response?.data?.message as string || "Failed to apply for the job.");
+        },
+    });
+
+    const handleApply = () => {
+        applyforJob.mutate();
+    }
+
     // loading state
     if (isLoading) return <Loading />;
 
     if (isError || !data) {
-        console.log("Job load error:", id); // test log
+        console.log("Job load error:", id);
         return <div className="p-10 text-center">Unable to load job.</div>;
     }
 
     const { job, relatedJobs, isApplied } = data;
 
-    console.log("Job details:", job); // test log
+    console.log("Job details:", job);
 
-    // ---------- Add to list mutation ----------
-    // const addToList = useMutation({
-    //     // mutationFn: async () => {
-    //     //     console.log("addToList clicked:", job.id); // test log
-    //     //     // try real API first
-    //     //     try {
-    //     //         const res = await axiosInstance.post(`/api/v2/jobs/${job.id}/add-to-list`);
-    //     //         console.log("addToList response:", res.data); // test log
-    //     //         return res.data;
-    //     //     } catch (err) {
-    //     //         // API not implemented → simulate success
-    //     //         console.warn("addToList API failed, using dummy fallback"); // test log
-    //     //         await new Promise((r) => setTimeout(r, 500));
-    //     //         return { ok: true };
-    //     //     }
-    //     // },
-    //     // onSuccess: () => {
-    //     //     toast.success("Added to list"); // user feedback
-    //     //     // small comment: refresh queries
-    //     //     // qc.invalidateQueries(["job-details", id]);
-    //     // },
-    //     // onError: (err: any) => {
-    //     //     console.error("addToList error:", err);
-    //     //     toast.error("Failed to add to list");
-    //     // },
-    // });
-
-    // ---------- Apply mutation ----------
-    // const apply = useMutation({
-    //     // mutationFn: async () => {
-    //     //     console.log("apply clicked:", job.id); // test log
-    //     //     try {
-    //     //         const res = await axiosInstance.post(`/api/v2/jobs/${job.id}/apply`);
-    //     //         console.log("apply response:", res.data); // test log
-    //     //         return res.data;
-    //     //     } catch (err) {
-    //     //         console.warn("apply API failed, using dummy fallback"); // test log
-    //     //         await new Promise((r) => setTimeout(r, 700));
-    //     //         return { ok: true };
-    //     //     }
-    //     // },
-    //     // onSuccess: () => {
-    //     //     toast.success("Application sent");
-    //     //     qc.invalidateQueries(["job-details", id]);
-    //     // },
-    //     // onError: (err: any) => {
-    //     //     console.error("apply error:", err);
-    //     //     toast.error("Failed to apply");
-    //     // },
-    // });
 
     // ---------- UI ----------
 
@@ -185,7 +156,7 @@ export default function JobDetailsAndApply({ id }: Props) {
                                             <Button
                                                 size="sm"
                                                 className="w-full md:w-auto"
-                                            // onClick={() => apply.mutate()}
+                                                onClick={handleApply}
                                             >
                                                 {isApplied ? "Already Applied" : "Apply"}
                                             </Button>
