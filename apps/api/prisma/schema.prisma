@@ -81,11 +81,10 @@ model JobApplication {
 }
 
 model Point {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @unique @db.ObjectId
-  points        Int      @default(100)
-  default_point Int      @default(100)
-  last_reset    DateTime @default(now())
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String @unique @db.ObjectId
+  points        Int    @default(100)
+  default_point Int    @default(100)
 
   user User @relation("UserPoints", fields: [userId], references: [id])
 
