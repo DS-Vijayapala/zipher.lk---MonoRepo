@@ -7,23 +7,36 @@ interface User {
     image: string;
 }
 
+export interface JobSummary {
+    id: string;
+    title: string;
+    user: User;
+}
+
 export interface JobApplication {
     id: string;
-    status: string;
-    date: string;
-    jobId: {
-        title: string;
-        location: string;
-        userID: User;
-    };
+    status: "Pending" | "Accepted" | "Rejected";
+    createdAt: string;
+    updatedAt: string;
+
+    jobId: string;
+    job: JobSummary;
+
+    userId: string;
+    user: User;
+}
+
+export interface UserApplicationsMeta {
+    page: number;
+    limit: number;
+    allpages: number;
+    status: "ALL" | "Pending" | "Accepted" | "Rejected";
+    totalAppliedJobs: number;
 }
 
 export interface UserApplicationsResponse {
     success: boolean;
     message?: string;
-    currentPage: number;
-    perPage: number;
-    totalApplications: number;
-    totalPages: number;
     applications: JobApplication[];
+    data: UserApplicationsMeta;
 }
