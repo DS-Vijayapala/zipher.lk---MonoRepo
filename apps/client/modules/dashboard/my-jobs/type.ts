@@ -11,6 +11,11 @@ export interface JobSummary {
     id: string;
     title: string;
     user: User;
+    level: string;
+    location: string;
+    category: string;
+    description: string;
+    salary: string;
 }
 
 export interface JobApplication {
