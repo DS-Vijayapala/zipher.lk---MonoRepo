@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
-import { JobsService } from './providers/jobs.service';
-import { CreateJobDto } from './dto/create-job.dto';
+import { JobsService } from '../providers/jobs.service';
+import { CreateJobDto } from '../dto/create-job.dto';
 import { Public } from 'src/modules/auth/decoraters/public.decoraters';
-import { GetAllJobsQueryDto } from './dto/get-all-jobs.query.dto';
+import { GetAllJobsQueryDto } from '../dto/get-all-jobs.query.dto';
 import { Roles } from 'src/modules/auth/decoraters/roles.decoraters';
-import { GetUserJobApplicationsDto } from './dto/get-user-job-applications.dto';
-import { JobApplicationService } from './providers/job-application.service';
+import { GetUserJobApplicationsDto } from '../dto/get-user-job-applications.dto';
+import { JobApplicationService } from '../providers/job-application.service';
 
 @Controller('jobs')
 export class JobsController {
