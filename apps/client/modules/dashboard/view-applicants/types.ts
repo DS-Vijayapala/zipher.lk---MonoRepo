@@ -15,8 +15,8 @@ export interface Job {
 }
 
 export interface JobApplication {
-    _id: string;
-    userId: User;
-    jobId: Job;
+    id: string;
+    user: User;
+    job: Job;
     status: ApplicationStatus;
 }
