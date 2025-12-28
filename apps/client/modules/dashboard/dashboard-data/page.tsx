@@ -143,10 +143,10 @@ const DashBoardPage = () => {
                             />
 
                             <ActionButton
-                                title="View Applications"
+                                title="View Applicants"
                                 description="Review candidate applications"
                                 icon={FileText}
-                                onClick={() => router.push("/dashboard/view-applications")}
+                                onClick={() => router.push("/dashboard/view-applicants")}
                                 isPrimary
                             />
 
