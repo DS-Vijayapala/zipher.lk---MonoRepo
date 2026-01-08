@@ -102,7 +102,7 @@ export default function AddJob() {
         onSuccess: async (data) => {
             if (data?.success) {
                 toast.success("Job posted successfully");
-                queryClient.invalidateQueries({ queryKey: ["jobs"] });
+                queryClient.invalidateQueries({ queryKey: ["jobs", "manage-jobs"] });
                 router.push("/dashboard");
                 await refetchDashboard?.();
                 reset();

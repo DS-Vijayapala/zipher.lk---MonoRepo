@@ -6,15 +6,18 @@ import { RedisService } from 'src/common/redis/redis.service';
 import { JobApplicationService } from './providers/job-application.service';
 import { JobApplicantsController } from './controllers/job-applicants.controller';
 import { JobApplicantsProvider } from './providers/job-applicants.provider';
+import { ManageJobsController } from './controllers/manage-jobs.controller';
+import { ManageJobsProvider } from './providers/manage-jobs.provider';
 
 @Module({
-  controllers: [JobsController, JobApplicantsController],
+  controllers: [JobsController, JobApplicantsController, ManageJobsController],
   providers: [
     JobsService,
     PrismaService,
     RedisService,
     JobApplicationService,
-    JobApplicantsProvider
+    JobApplicantsProvider,
+    ManageJobsProvider
   ],
 })
 export class JobsModule { }

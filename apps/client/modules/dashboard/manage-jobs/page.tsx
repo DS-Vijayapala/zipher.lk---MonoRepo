@@ -5,7 +5,6 @@ import moment from "moment"
 import {
     Eye,
     EyeOff,
-    Plus,
     Users,
     Calendar,
     MapPin,
@@ -33,28 +32,32 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination"
 
-import { useManageJobs, PAGE_SIZE } from "./hooks/useManageJobs"
-import { Job } from "./types"
 import Loading from "@/components/shared/Loading"
 import JobDetailsDialog from "./components/JobDetailsDialog"
 
+import {
+    useGetUserPostedJobs,
+    useToggleJobVisibility,
+    PAGE_LIMIT,
+    Job,
+} from "./hooks/useManageJobs"
+
 const ManageJobs: React.FC = () => {
-
     const [page, setPage] = useState(1)
-
     const [open, setOpen] = useState(false)
-
     const [selectedJob, setSelectedJob] = useState<Job | null>(null)
 
-    const { data, isLoading, toggleVisibility } = useManageJobs(page)
+    // ✅ API data
+    const { data, isLoading } = useGetUserPostedJobs(page)
+    const toggleMutation = useToggleJobVisibility()
 
     if (isLoading) return <Loading />
 
-    const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE)
+    const totalPages = Math.ceil((data?.total ?? 0) / PAGE_LIMIT)
 
     const onToggle = (job: Job) => {
-        toggleVisibility(job.id)
-        toast.success(`Job is now ${job.visible ? "Hidden" : "Visible"}`)
+        toggleMutation.mutate(job.id)
+        toast.success(`Job status changed to ${job.visible ? "Hidden" : "Visible"}`)
     }
 
     const openDetails = (job: Job) => {
@@ -69,11 +72,11 @@ const ManageJobs: React.FC = () => {
                 subTitle="View, control visibility, and manage job postings"
             />
 
-            {/* Desktop Table */}
+            {/* ================= Desktop Table ================= */}
             <Card className="hidden lg:block border-green-100">
                 <Table>
-                    <TableHeader >
-                        <TableRow >
+                    <TableHeader>
+                        <TableRow>
                             <TableHead className="text-green-900">Job Details</TableHead>
                             <TableHead className="text-green-900">Posted Date</TableHead>
                             <TableHead className="text-green-900">Location</TableHead>
@@ -86,7 +89,7 @@ const ManageJobs: React.FC = () => {
                     <TableBody>
                         {data?.data.map((job) => (
                             <TableRow key={job.id}>
-                                <TableCell className="font-medium">
+                                <TableCell className="font-medium text-green-800">
                                     {job.title}
                                 </TableCell>
 
@@ -116,11 +119,10 @@ const ManageJobs: React.FC = () => {
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => onToggle(job)}
-                                        className={
-                                            job.visible
-                                                ? "text-green-700 hover:bg-green-100"
-                                                : "text-slate-500 hover:bg-slate-100"
-                                        }
+                                        className={`cursor-pointer ${job.visible
+                                            ? "text-green-700 hover:bg-green-100"
+                                            : "text-slate-500 hover:bg-slate-100"
+                                            }`}
                                     >
                                         {job.visible ? <Eye /> : <EyeOff />}
                                         {job.visible ? "Visible" : "Hidden"}
@@ -143,13 +145,10 @@ const ManageJobs: React.FC = () => {
                 </Table>
             </Card>
 
-            {/* Mobile Cards (Refined & Compact) */}
+            {/* ================= Mobile Cards ================= */}
             <div className="lg:hidden space-y-3">
                 {data?.data.map((job) => (
-                    <Card
-                        key={job.id}
-                        className="p-4 border-green-100"
-                    >
+                    <Card key={job.id} className="p-4 border-green-100">
                         {/* Title + Visibility */}
                         <div className="flex items-start justify-between gap-2">
                             <h3 className="font-semibold text-slate-900 text-sm leading-snug">
@@ -157,10 +156,7 @@ const ManageJobs: React.FC = () => {
                             </h3>
 
                             <div
-                                className={`flex items-center gap-1 text-xs font-medium
-                                    ${job.visible
-                                        ? "text-green-700"
-                                        : "text-slate-500"
+                                className={`flex items-center gap-1 text-xs font-medium ${job.visible ? "text-green-700" : "text-slate-500"
                                     }`}
                             >
                                 {job.visible ? (
@@ -177,7 +173,7 @@ const ManageJobs: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Date + Location (closer to title) */}
+                        {/* Date + Location */}
                         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
                             <div className="flex items-center gap-1">
                                 <Calendar className="w-3.5 h-3.5" />
@@ -210,15 +206,10 @@ const ManageJobs: React.FC = () => {
                 ))}
             </div>
 
-
-
-            {/* Pagination */}
+            {/* ================= Pagination ================= */}
             {totalPages > 1 && (
-
                 <Pagination className="justify-center">
-
                     <PaginationContent>
-
                         <PaginationItem className="cursor-pointer">
                             <PaginationPrevious
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -226,8 +217,7 @@ const ManageJobs: React.FC = () => {
                         </PaginationItem>
 
                         {Array.from({ length: totalPages }).map((_, i) => (
-
-                            <PaginationItem key={i} className="cursor-pointer ">
+                            <PaginationItem key={i} className="cursor-pointer">
                                 <PaginationLink
                                     isActive={page === i + 1}
                                     onClick={() => setPage(i + 1)}
@@ -240,7 +230,6 @@ const ManageJobs: React.FC = () => {
                                     {i + 1}
                                 </PaginationLink>
                             </PaginationItem>
-
                         ))}
 
                         <PaginationItem className="cursor-pointer">
@@ -250,18 +239,15 @@ const ManageJobs: React.FC = () => {
                                 }
                             />
                         </PaginationItem>
-
                     </PaginationContent>
-
                 </Pagination>
-
             )}
 
-            {/* Dialog */}
+            {/* ================= Dialog ================= */}
             <JobDetailsDialog
                 open={open}
                 onClose={() => setOpen(false)}
-                job={selectedJob}
+                jobId={selectedJob?.id || ""}
             />
         </div>
     )

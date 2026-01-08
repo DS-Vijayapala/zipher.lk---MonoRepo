@@ -13,15 +13,15 @@ import { Job } from "../types"
 interface JobDetailsDialogProps {
     open: boolean
     onClose: () => void
-    job: Job | null
+    jobId: string | null
 }
 
 const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
     open,
     onClose,
-    job,
+    jobId,
 }) => {
-    if (!job) return null
+    if (!jobId) return null
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -35,13 +35,13 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                 <div className="space-y-4">
                     <div>
                         <p className="text-sm text-slate-500">Job ID</p>
-                        <p className="font-medium">{job.id}</p>
+                        <p className="font-medium">{jobId}</p>
                     </div>
 
                     <div>
                         <p className="text-sm text-slate-500">Job Title</p>
                         <p className="font-semibold text-green-700">
-                            {job.title}
+                            {jobId}
                         </p>
                     </div>
 
