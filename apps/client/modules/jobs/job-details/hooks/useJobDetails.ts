@@ -10,6 +10,7 @@ export interface User {
 }
 
 export interface Job {
+    bannerImage: string;
     id: string;
     title: string;
     description?: string;
