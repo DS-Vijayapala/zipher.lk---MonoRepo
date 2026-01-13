@@ -152,7 +152,7 @@ const DashBoardPage = () => {
 
                             <ActionButton
                                 title="Manage Jobs"
-                                description="Edit or remove job posts"
+                                description="Edit your own job posts"
                                 icon={Settings}
                                 onClick={() => router.push("/dashboard/manage-jobs")}
                                 isPrimary

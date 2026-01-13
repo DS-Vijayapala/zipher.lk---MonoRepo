@@ -100,4 +100,35 @@ export class RedisService {
 
     }
 
+    async delByPrefix(prefix: string): Promise<number> {
+        let cursor = 0;
+        let deleted = 0;
+
+        try {
+            do {
+                const [nextCursor, keys] = await this.redis.scan(cursor, {
+                    match: `${prefix}*`,
+                    count: 100,
+                });
+
+                cursor = Number(nextCursor);
+
+                if (keys.length > 0) {
+                    const delCount = await this.redis.del(...keys);
+                    deleted += delCount;
+                }
+
+            } while (cursor !== 0);
+
+            return deleted;
+
+        } catch (err) {
+            this.logger.error(
+                `Redis delByPrefix failed for prefix "${prefix}"`,
+                err
+            );
+            return 0;
+        }
+    }
+
 }

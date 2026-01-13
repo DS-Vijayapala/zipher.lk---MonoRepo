@@ -296,7 +296,7 @@ export class JobsService {
   }
 
   private buildJobDetailKey(jobId: string, userId: string | null): string {
-    return `job:detail:${jobId}:${userId ?? "guest"}`;
+    return `job:detail:${jobId}`;
   }
 
   // Get available total user points

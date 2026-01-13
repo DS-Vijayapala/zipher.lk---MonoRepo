@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
     Dialog,
@@ -27,6 +27,7 @@ import { jobCategories, jobLocations } from "@/modules/jobs/all-jobs/libs/consta
 import ChipInput from "../../add-job/components/form/ChipInput";
 import Loading from "@/components/shared/Loading";
 import { toast } from "react-hot-toast";
+import axiosInstance from "@/lib/axiosInstence";
 
 interface Props {
     open: boolean;
@@ -60,16 +61,26 @@ export default function EditJobDetailsDialog({
     const { data, isLoading, isError, error } =
         useJobDetails(jobId ?? undefined);
 
+    const queryClient = useQueryClient();
+
     const {
         register,
         handleSubmit,
         control,
         setValue,
         watch,
+        reset,
         formState: { isSubmitting },
-    } = useForm<EditJobFormData>({
-        values: data
-            ? {
+    } = useForm<EditJobFormData>();
+
+    /* sync API data into form */
+    useEffect(() => {
+        if (!open) return;
+        if (!data?.job) return;
+
+        // defer reset until Dialog content is mounted
+        requestAnimationFrame(() => {
+            reset({
                 title: data.job.title ?? "",
                 category: data.job.category ?? "",
                 location: data.job.location ?? "",
@@ -78,39 +89,43 @@ export default function EditJobDetailsDialog({
                 description: data.job.description ?? "",
                 requirements: data.job.requirements ?? [],
                 qualifications: data.job.qualifications ?? [],
-            }
-            : undefined,
-    });
+            });
+        });
+    }, [open, data, reset]);
+
 
     const mutation = useMutation({
         mutationFn: async (payload: EditJobFormData) => {
             console.log("EDIT JOB PAYLOAD:", payload);
-            await new Promise((r) => setTimeout(r, 500));
+            await axiosInstance.patch(`/jobs/manage/${jobId}`, payload);
             return payload;
         },
-        onSuccess: () => {
+        onSuccess: async () => {
+            // 🔥 Invalidate related frontend caches
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["job-details", jobId] }),
+            ]);
+
             toast.success("Job updated successfully");
             onClose();
         },
-        onError: () => {
+        onError: (error) => {
             toast.error("Something went wrong");
+            console.error("Edit job error:", error);
         },
     });
 
+
     if (!jobId) return null;
 
+
     return (
-
         <Dialog open={open} onOpenChange={onClose}>
-
             <DialogContent className="max-w-4xl max-h-[95vh] p-0">
-
                 <DialogHeader className="px-6 py-4 border-b">
-
                     <DialogTitle className="text-lg font-semibold text-green-800">
                         Edit Job
                     </DialogTitle>
-
                 </DialogHeader>
 
                 {isLoading && <Loading />}
@@ -122,16 +137,13 @@ export default function EditJobDetailsDialog({
                 )}
 
                 {data && (
-
                     <form
                         onSubmit={handleSubmit((values) =>
                             mutation.mutate(values)
                         )}
                         className="h-full"
                     >
-
                         <ScrollArea className="h-[calc(95vh-140px)] px-6 py-6">
-
                             <div className="space-y-6">
 
                                 {/* Job Title */}
@@ -139,8 +151,7 @@ export default function EditJobDetailsDialog({
                                     <label className="text-sm font-medium text-green-800">
                                         Job Title *
                                     </label>
-                                    <Input
-                                        {...register("title")} />
+                                    <Input {...register("title")} />
                                 </div>
 
                                 {/* Description */}
@@ -192,7 +203,7 @@ export default function EditJobDetailsDialog({
                                                 setValue("location", v)
                                             }
                                         >
-                                            <SelectTrigger >
+                                            <SelectTrigger>
                                                 <SelectValue placeholder="Select location" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -215,7 +226,7 @@ export default function EditJobDetailsDialog({
                                                 setValue("level", v)
                                             }
                                         >
-                                            <SelectTrigger >
+                                            <SelectTrigger>
                                                 <SelectValue placeholder="Select level" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -233,7 +244,7 @@ export default function EditJobDetailsDialog({
                                         </label>
                                         <Input
                                             type="number"
-                                            {...register("salary")}
+                                            {...register("salary", { valueAsNumber: true })}
                                         />
                                     </div>
                                 </div>
@@ -279,9 +290,7 @@ export default function EditJobDetailsDialog({
 
                         {/* Footer */}
                         <div className="px-6 py-4 border-t flex justify-end gap-3">
-
                             <Button
-                                className="cursor-pointer"
                                 type="button"
                                 variant="outline"
                                 onClick={onClose}
@@ -290,22 +299,15 @@ export default function EditJobDetailsDialog({
                             </Button>
 
                             <Button
-                                className="cursor-pointer"
                                 type="submit"
                                 disabled={isSubmitting || mutation.isPending}
                             >
                                 {mutation.isPending ? "Updating..." : "Save"}
                             </Button>
                         </div>
-
                     </form>
-
                 )}
-
             </DialogContent>
-
         </Dialog>
-
     );
-
 }

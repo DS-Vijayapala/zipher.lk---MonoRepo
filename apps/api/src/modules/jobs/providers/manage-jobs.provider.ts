@@ -1,11 +1,14 @@
 import { Injectable, ForbiddenException, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "src/common/prisma/prisma.service"
+import { UpdateJobDto } from "../dto/update-job.dto"
+import { RedisService } from "src/common/redis/redis.service"
 
 @Injectable()
 export class ManageJobsProvider {
 
     constructor(
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private readonly redisService: RedisService
     ) { }
 
     async getUserJobs(
@@ -69,4 +72,39 @@ export class ManageJobsProvider {
             },
         })
     }
+
+    async updateJob(
+        userId: string,
+        jobId: string,
+        dto: UpdateJobDto
+    ) {
+
+        const job = await this.prisma.job.findUnique({
+            where: { id: jobId },
+            select: { id: true, userID: true },
+        });
+
+        if (!job) {
+            throw new NotFoundException("Job not found");
+        }
+
+        if (job.userID !== userId) {
+            throw new ForbiddenException("You are not allowed to edit this job");
+        }
+
+        const updatedJob = await this.prisma.job.update({
+            where: { id: jobId },
+            data: {
+                ...dto,
+                salary: dto.salary ? Number(dto.salary) : undefined,
+            },
+        });
+
+        // Invalidate related cache in Redis
+        await this.redisService.delByPrefix(`job:detail:${jobId}`);
+
+        return updatedJob;
+
+    }
+
 }
