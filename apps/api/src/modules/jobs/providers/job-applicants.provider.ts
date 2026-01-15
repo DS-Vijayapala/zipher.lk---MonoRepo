@@ -46,7 +46,7 @@ export class JobApplicantsProvider {
                                 name: true,
                                 email: true,
                                 image: true,
-                                resume: true,
+                                resumeUrl: true,
                             },
                         },
                         job: {

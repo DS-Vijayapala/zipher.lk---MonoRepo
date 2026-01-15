@@ -37,7 +37,8 @@ model User {
   hashRefreshToken String?
   role             Role     @default(USER)
   image            String?  @default("")
-  resume           String?  @default("")
+  resumeUrl        String?  @default("")
+  resumePublicId   String?  @default("")
   location         String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

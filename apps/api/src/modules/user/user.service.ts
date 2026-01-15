@@ -1,15 +1,17 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RedisService } from 'src/common/redis/redis.service';
 import { log } from 'console';
+import { UploadService } from 'src/common/upload/upload.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
+    private readonly uploadService: UploadService,
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -129,6 +131,45 @@ export class UserService {
       where: { userId },
       select: { points: true, default_point: true }
     });
+  }
+
+  // Upload User Resume
+  async uploadUserResume(
+    userId: string,
+    file: Express.Multer.File,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Delete old resume if exists
+    if (user.resumePublicId) {
+      await this.uploadService.deleteFile(user.resumePublicId);
+    }
+
+    // Upload new resume
+    const uploadResult = await this.uploadService.uploadFile(
+      file,
+      'zipher/resumes',
+    );
+
+    // Save resume URL in DB
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        resumeUrl: uploadResult.secure_url,
+        resumePublicId: uploadResult.public_id,
+      },
+    });
+
+    return {
+      message: 'Resume uploaded successfully',
+      resumeUrl: updatedUser.resumeUrl,
+    };
   }
 
 }

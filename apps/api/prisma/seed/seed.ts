@@ -24,7 +24,7 @@ async function main() {
                 role: Role.USER,
                 image: faker.image.avatar(),
                 location: `${faker.location.city()}, ${faker.location.country()}`,
-                resume: faker.lorem.sentence(),
+                resumeUrl: faker.lorem.sentence(),
             },
         });
 
