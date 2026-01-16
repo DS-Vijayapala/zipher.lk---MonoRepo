@@ -3,16 +3,19 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/modules/auth/decoraters/roles.decoraters';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
+  // Create User
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
+  // Get Dashboard Data
   @Roles('USER')
   @Get('/dashboard-data')
   getDashboardData(
@@ -23,7 +26,6 @@ export class UserController {
 
     return this.userService.getDashboardData(userId);
   }
-
 
   // Resume Upload
   @Roles('USER')
@@ -44,6 +46,27 @@ export class UserController {
     }
 
     return this.userService.uploadUserResume(userId, file);
+  }
+
+  //  Get My Profile
+  @Roles('USER')
+  @Get('/profile/me')
+  getMyProfile(@Req() req: any) {
+    return this.userService.getMyProfile(req.user.id);
+  }
+
+
+  // Create or Update Profile
+  @Roles('USER')
+  @Patch('/profile')
+  updateProfile(
+    @Req() req: any,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.userService.upsertProfile(
+      req.user.id,
+      dto,
+    );
   }
 
 

@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { RedisService } from 'src/common/redis/redis.service';
 import { log } from 'console';
 import { UploadService } from 'src/common/upload/upload.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -170,6 +171,93 @@ export class UserService {
       message: 'Resume uploaded successfully',
       resumeUrl: updatedUser.resumeUrl,
     };
+  }
+
+  //  Get My Profile
+  async getMyProfile(userId: string) {
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      location: user.location,
+      resumeUrl: user.resumeUrl,
+
+      phone: user.profile?.phone ?? null,
+      currentPosition: user.profile?.currentPosition ?? null,
+      description: user.profile?.description ?? null,
+
+      socialLinks: {
+        linkedin: user.profile?.linkedin ?? null,
+        github: user.profile?.github ?? null,
+        twitter: user.profile?.twitter ?? null,
+      },
+
+    };
+
+  }
+
+  // Create or Update Profile
+  async upsertProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ) {
+
+    // Ensure user exists
+
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update user table (name, location)
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: dto.name,
+        location: dto.location,
+      },
+    });
+
+    // Create OR update profile
+    await this.prisma.profile.upsert({
+      where: { userId },
+      update: {
+        phone: dto.phone,
+        currentPosition: dto.currentPosition,
+        description: dto.description,
+        linkedin: dto.linkedin,
+        github: dto.github,
+        twitter: dto.twitter,
+      },
+      create: {
+        userId,
+        phone: dto.phone,
+        currentPosition: dto.currentPosition,
+        description: dto.description,
+        linkedin: dto.linkedin,
+        github: dto.github,
+        twitter: dto.twitter,
+      },
+    });
+
+    return { message: 'Profile updated successfully' };
+
   }
 
 }
