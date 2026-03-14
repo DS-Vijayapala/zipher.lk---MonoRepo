@@ -21,36 +21,71 @@ enum ApplicationStatus {
   Rejected
 }
 
+enum JobType {
+  FullTime
+  PartTime
+  Remote
+  Contract
+  Internship
+}
+
 model User {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
   name             String?
-  email            String   @unique
+  email            String  @unique
   password         String?
   hashRefreshToken String?
-  role             Role     @default(USER)
-  image            String?  @default("")
-  resume           String?  @default("")
-  location         String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  role             Role    @default(USER)
+
+  image          String?
+  resumeUrl      String?
+  resumePublicId String?
+
+  location String?
+
+  profile Profile?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   jobs         Job[]            @relation("UserJobs")
   applications JobApplication[] @relation("UserApplications")
   points       Point?           @relation("UserPoints")
 }
 
+model Profile {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  phone           String?
+  currentPosition String?
+  description     String?
+
+  linkedin String?
+  github   String?
+  twitter  String?
+
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Job {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String
-  location    String
-  category    String
-  level       String
-  salary      Float
-  date        Int
-  visible     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  location       String
+  category       String
+  level          String
+  salary         Int?
+  bannerImage    String?
+  requirements   String[] @default([])
+  qualifications String[] @default([])
+  jobType        JobType  @default(FullTime)
+  visible        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   userID       String           @db.ObjectId
   user         User             @relation("UserJobs", fields: [userID], references: [id])
@@ -62,7 +97,6 @@ model JobApplication {
   userId    String            @db.ObjectId
   jobId     String            @db.ObjectId
   status    ApplicationStatus @default(Pending)
-  date      String
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
@@ -71,11 +105,13 @@ model JobApplication {
 }
 
 model Point {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String   @unique @db.ObjectId
-  points        Int      @default(100)
-  default_point Int      @default(100)
-  last_reset    DateTime @default(now())
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String @unique @db.ObjectId
+  points        Int    @default(100)
+  default_point Int    @default(100)
 
   user User @relation("UserPoints", fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

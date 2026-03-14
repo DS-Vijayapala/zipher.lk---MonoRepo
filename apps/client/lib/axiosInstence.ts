@@ -3,8 +3,18 @@ import { getSession, deleteSession } from "./session";
 
 const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000",
-    headers: { "Content-Type": "application/json" },
+    withCredentials: true,
 });
+
+axiosInstance.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+        delete config.headers["Content-Type"]
+    } else {
+        config.headers["Content-Type"] = "application/json"
+    }
+    return config
+})
+
 
 // In-memory token storage (only for access token during request cycle)
 

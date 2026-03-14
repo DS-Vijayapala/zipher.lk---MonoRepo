@@ -10,9 +10,14 @@ import axiosInstance from "@/lib/axiosInstence";
 import { createSession } from "@/lib/session";
 import toast from "react-hot-toast";
 import Logo from "@/components/shared/Logo";
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function LoginPage() {
+
+    const queryClient = useQueryClient();
+
     const router = useRouter();
+
     const [showPassword, setShowPassword] = useState(false);
 
     const {
@@ -45,12 +50,15 @@ export default function LoginPage() {
                 await createSession({
                     user: {
                         id: response.id,
+                        email: response.email,
                         name: response.name,
                         role: response.role,
                     },
                     accessToken: response.accessToken,
                     refreshToken: response.refreshToken,
                 });
+
+                queryClient.invalidateQueries({ queryKey: ["user-session"] });
 
                 toast.success(`Welcome back, ${response.name}!`);
                 router.push("/dashboard");
