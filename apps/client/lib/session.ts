@@ -19,7 +19,20 @@ export type SessionPayload = {
     refreshToken: string;
 };
 
-const secret = new TextEncoder().encode(process.env.SESSION_SECRET_KEY);
+const SESSION_SECRET = process.env.SESSION_SECRET_KEY;
+if (!SESSION_SECRET) {
+    throw new Error(
+        "Missing environment variable SESSION_SECRET_KEY. Set it in your Vercel project settings (or .env for local dev)."
+    );
+}
+
+if (SESSION_SECRET.length < 32) {
+    console.warn(
+        "SESSION_SECRET_KEY should be at least 32 characters for HS256 security, but using the value from environment anyway."
+    );
+}
+
+const secret = new TextEncoder().encode(SESSION_SECRET);
 
 const SESSION_NAME = "session-token";
 
